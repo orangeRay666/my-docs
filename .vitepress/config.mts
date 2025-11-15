@@ -48,7 +48,7 @@ export default defineConfig({
         ]
       },
       {
-        text: '前端',
+        text: '前端面试题',
         items: [
           { text: 'html+css 题目', link: '/front-end/html+css/question' },
         ]

@@ -137,3 +137,13 @@
   --docsearch-primary-color: var(--vp-c-brand-1) !important;
 }
 
+/* 
+.VPContent.has-sidebar{
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+} */
+.VPSidebar {
+  padding-left: 50px !important;
+  width: var(--vp-sidebar-width) !important;
+  /* width: 200px !important; */
+}
