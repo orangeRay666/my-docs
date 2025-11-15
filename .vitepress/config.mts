@@ -36,8 +36,7 @@ export default defineConfig({
     outlineTitle: "文章目录",
     outline: [2, 6],
     nav: [
-      { text: 'Home', link: '/' },
-      { text: '微信小程序', link: '/front-end/wx' }
+      { text: 'Home', link: '/' }
     ],
 
     sidebar: [
@@ -46,6 +45,12 @@ export default defineConfig({
         items: [
           { text: 'Markdown Examples', link: '/markdown-examples' },
           { text: 'Runtime API Examples', link: '/api-examples' }
+        ]
+      },
+      {
+        text: '前端',
+        items: [
+          { text: 'html+css 题目', link: '/front-end/html+css/question' },
         ]
       },
       {
