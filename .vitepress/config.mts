@@ -6,10 +6,10 @@ export default defineConfig({
   title: "无限进步",
   description: "orange的vitepress文档",
   head: [
-    ["link", { rel: "icon", href: "/logo.jpg" }],
+    ["link", { rel: "icon", href: "/my-docs/logo.jpg" }],
   ],
   themeConfig: {
-    logo: '/logo.jpg',
+    logo: '/my-docs/logo.jpg',
     search: {
       provider: "local",
       options: {
