@@ -9,7 +9,7 @@ export default defineConfig({
     ["link", { rel: "icon", href: "/my-docs/logo.jpg" }],
   ],
   themeConfig: {
-    logo: '/my-docs/logo.jpg',
+    logo: '/logo.jpg',
     search: {
       provider: "local",
       options: {
