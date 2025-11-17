@@ -137,13 +137,31 @@
   --docsearch-primary-color: var(--vp-c-brand-1) !important;
 }
 
-/* 
-.VPContent.has-sidebar{
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-} */
+.VPNavBarTitle.has-sidebar .title{
+  border-bottom-color:var(--vp-nav-bg-color);
+}
+.VPNavBar:not(.home) .divider-line{
+  background-color: var(--vp-nav-bg-color);
+}
+
+    
+.VPNavBar.has-sidebar .container{
+  background-color: var(--vp-nav-bg-color);
+}
+@media (min-width: 1440px){
+  .VPContent.has-sidebar{
+    padding-left: var(--vp-sidebar-width) !important;
+    padding-right: 0 !important;
+  }
+}
+
 .VPSidebar {
   padding-left: 50px !important;
   width: var(--vp-sidebar-width) !important;
+  top:var(--vp-nav-height) !important;
+  background-color: var(--vp-nav-bg-color) !important;
   /* width: 200px !important; */
+  .curtain{
+    background-color: var(--vp-nav-bg-color) !important;
+  }
 }
