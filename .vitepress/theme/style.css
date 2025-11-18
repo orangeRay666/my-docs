@@ -148,6 +148,9 @@
 .VPNavBar.has-sidebar .container{
   background-color: var(--vp-nav-bg-color) !important;
 }
+.VPDoc.has-aside .content-container {
+  width: 100% !important;
+}
 @media (min-width: 1440px){
   .VPContent.has-sidebar{
     padding-left: var(--vp-sidebar-width) !important;
