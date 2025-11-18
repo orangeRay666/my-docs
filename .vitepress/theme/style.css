@@ -149,7 +149,7 @@
   background-color: var(--vp-nav-bg-color) !important;
 }
 .VPDoc.has-aside .content-container[data-v-c4bff45a] {
-  width: 100% !important;
+  max-width: 100% !important;
 }
 @media (min-width: 1440px){
   .VPContent.has-sidebar{
