@@ -159,6 +159,7 @@
 }
 
 .VPSidebar {
+  padding-top: 0 !important;
   padding-left: 50px !important;
   width: var(--vp-sidebar-width) !important;
   top:var(--vp-nav-height) !important;
