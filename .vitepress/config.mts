@@ -4,7 +4,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   base: "/my-docs/",
   title: "无限进步",
-  description: "orange的vitepress文档",
+  description: "orange的学习文档",
   head: [
     ["link", { rel: "icon", href: "/my-docs/logo.jpg" }],
   ],
@@ -50,7 +50,9 @@ export default defineConfig({
       {
         text: '前端面试题',
         items: [
-          { text: 'html+css 题目', link: '/front-end/html+css/question' },
+          { text: 'HTML+CSS 题目', link: '/front-end/html+css/question' },
+          { text: 'JavaScript 题目', link: '/front-end/js/question' },
+          { text: '计算机网络 题目', link: '/front-end/http/question' },
         ]
       },
       {

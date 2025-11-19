@@ -4,7 +4,7 @@ layout: home
 
 hero:
   name: "无限进步"
-  text: "orange的vitepress文档"
+  text: "orange的学习文档"
   tagline: 持续学习，无限进步
   image:
     src: /logo.png
