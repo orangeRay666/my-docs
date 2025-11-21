@@ -550,19 +550,194 @@ wss.on('connection', function connection(ws) {
 ```
 
 ## 32. 问题：websocket建立连接的过程
+1. **客户端发起HTTP握手请求**：客户端首先向服务器发起一个标准的HTTP请求，这个请求包含了一些特定的头部，用于请求建立websocket连接。
+```javascript
+GET /chat HTTP/1.1
+Host: server.example.com
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+Origin: http://example.com
+Sec-WebSocket-Protocol: chat, superchat
+Sec-WebSocket-Version: 13
+```
+* `GET/chat HTTP/1.1`:请求的路径和协议版本
+* `Host: server.example.com`:指定服务器的主机名和端口号
+* `Upgrade: websocket`:表示客户端希望升级到websocket协议
+* `Connection: Upgrade`:表示连接将被升级到新的协议
+* `Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==`:Base64编码的随机密钥。服务器用于生成响应中的`Sec-WebSocket-Accept`头部，用于验证服务器是否支持websocket协议。
+* `Origin: http://example.com`:指定请求的来源，用于防止跨站请求伪造（CSRF）攻击
+* `Sec-WebSocket-Protocol: chat, superchat`:指定客户端支持的websocket子协议
+* `Sec-WebSocket-Version: 13`:指定websocket协议的版本号
+
+2. **服务器响应HTTP握手请求** 如果服务器支持WebSocket并同意升级连接，则会返回一个101 Switching Protocols状态码的响应，表示协议切换成功。
+```javascript
+HTTP/1.1 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+Sec-WebSocket-Protocol: chat
+```
+* `HTTP/1.1 101 Switching Protocols`:响应的状态码和协议版本
+* `Upgrade: websocket`:表示服务器同意升级到websocket协议
+* `Connection: Upgrade`:表示连接将被升级到新的协议
+* `Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=`：服务器基于客户端提供的`Sec-WebSocket-Key`头部计算得到的Base64编码的响应密钥，确保握手安全。
+* `Sec-WebSocket-Protocol: chat`：服务器确认使用的websocket子协议。
+
+3. **WebSocket连接建立**：
+在服务器响应成功后，客户端和服务器之间的HTTP连接就升级为WebSocket连接，从此可以进行全双工的实时通信。此时，HTTP头部已经不再使用，取而代之的是WebSocket数据帧。
+
+4. **连接关闭**：WebSocket连接可以由客服端或服务器任意一方关闭。关闭连接时，发送一个控制帧表示关闭请求，连接将以有序的方式关闭。
 
 
 ## 33. 问题：websocket支持传输的数据格式
+1. **文本数据（Text Data）**：UTF-8编码的字符串形式传输的。
+```javascript
+const socket = new WebSocket('ws://localhost:8080');
+
+// 连接打开时发送文本消息
+socket.onopen = function(event) {
+    console.log('WebSocket连接已打开');
+
+    // 发送消息给服务器
+    socket.send("hello Server")
+};
+
+// 接受文本消息
+socket.onmessage = function(event) {
+    console.log('收到服务器消息：' + event.data);
+};
+```
+
+2. **二进制数据（Binary Data）**：二进制数据可以有多种形式，包括`ArrayBuffer`和`Blob`（在浏览器环境中）。可用于传输复杂的二进制数据，如图片、音频、视频等。
+```javascript
+const socket = new WebSocket('ws://localhost:8080');
+
+// 发送二进制数据
+socket.onopen = function(event) {
+    const buffer = new ArrayBuffer(8);
+    const view = new Uint8Array(buffer);
+    view[0] = 255;// 示例数据
+    socket.send(buffer);
+};
+
+// 接收二进制数据
+socket.onmessage = function(event) {
+    if (event.data instanceof ArrayBuffer) {
+        const view = new Uint8Array(event.data);
+        console.log('收到二进制数据：', view);
+    }
+};
+```
 
 
 ## 34. 问题：Server-Sent Events(SSE)
+服务器向浏览器推送实时更新数据的技术。通过使用标准HTTP协议和一个持久的连接将事件数据从服务器发送到客服端。适用于需要在客户端实时显示来自服务器的更新信息的应用场景，如实时通知、新闻推送、股票加个更新等。
+
+**主要特点**
+1. **单向通信**：服务器可以向客户端推送数据，但客户端不能通过同一连接发送数据回服务器。
+2. **基于HTTP**：SSE使用HTTP协议
+3. **自动重连**：如果连接断开，浏览器回自动尝试重新连接。
+
+**工作原理**
+1. **服务器端**：服务器通过HTTP响应头`Content-Type:text/event-stream`明确这是一个事件流。
+2. **客户端**：客户端创建一个`Eventsource`对象，监听来在服务器的事件，并根据接收到的数据更新UI。
+
+**适用场景**
+* **实时通知**：如聊天消息，系统通知等
+* **实时更新**：如新闻推送，股票加个更新等
+* **数据监控**：如服务器状态监控、日志实时显示等
 
 
 ## 35. 问题：Server-Sent Events(SSE)示例代码
+**服务器代码**
+```javascript
+const http = require('http')
+
+http.createServer((req, res) => {
+    res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive'
+    });
+    // 发送事件数据
+    setInterval(() => {
+        res.write('data: Hello World!\n\n');
+    }, 1000);
+}).listen(8080,()={
+    console.log('Server is running on port 8080');
+});
+```
+
+**客户端代码**
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <button id="start">Start SEE</button>
+    <button id="stop">Stop SEE</button>
+    <div id="message"></div>
+
+    <script>
+        let eventSource;
+        document.getElementById('start').addEventListener('click',() => {
+            eventSource = new EventSource("http://localhost:8080");
+            eventSource.onmessage = (event) => {
+                document.getElementById('message').innerHTML += `<p>${event.data}</p>`;
+            };
+
+            eventSource.onopen = (event) => {
+                console.log('EventSource connection opened');
+            };
+            eventSource.onerror = (error) => {
+                console.error('EventSource error:', error);
+            };
+
+        })
+
+        document.getElementById('stop').addEventListener('click',() => {
+            if(eventSource){
+                eventSource.close();
+                console.log('EventSource connection closed');
+            }
+        })
+
+    </script>
+</body>
+</html>
+```
 
 
 ## 36. 问题：SSE与websocket的区别
+**Server-Sent Events(SSE)**
+1. **单向通信**：SSE是单向通信，服务器可以向客户端推送数据，但客户端不能通过同一连接发送数据回服务器。
+2. **基于HTTP协议**：SSE使用HTTP协议，特别是HTTP/1.1的事件流（Event Stream）格式。
+3. **连续保持**：SSE也保持一个持久化的连接，但他是基于HTTP协议的，适合需要从服务器向客户端推送实时更新的应用，如新闻推送、实时股票价格等。
+4. **数据格式**：SSE只能发送文本数据，且是以事件流的形式发送。
+5. **简单性**：SSE的实现较为简单，只需要服务器不断发送事件数据到客户端。
+
+**WebSocket**
+1. **双向通信**：WebSocket允许双向通信。服务器和客户端可以通过同一连接发送和接收数据。
+2. **协议**：WebSocket是一个独立的协议，从HTTP协议开始，但一旦连接建立，就切换到websocket协议。
+3. **连接保持**：WebSocket建立的是一个持久化的连接，适合需要频繁交换数据的应用，如在线聊天，实时游戏。
+4. **数据格式**：WebSocket可以发送和接收任意格式的数据（二进制数据、文本数据等），而SSE只能发送文本数据。
+5. **复杂度**：WebSocket的实现相对复杂，需要处理连接的建立、保持和关闭等过程、数据帧格式等。
+
+**选型**
+* SSE更适合单向数据流、需要实时更新的场景，如实时通知系统、社交媒体更新、新闻推送等
+* WebSocket更适合需要双向通信、高频率数据交换的场景，如实时聊天应用、多人在线游戏等
 
 
 ## 37. 问题：http2.0
-
+* **多路复用（Multiplexing）**:HTTP/2允许在单个连接上同时发送多个请求和响应，而不需要等待一个请求的响应才能发送下一个请求。这显著提高了数据传输的效率，减少了延迟，尤其对于复杂的网页来说效果明显。
+* **头部压缩（Header Compression）**：HTTP/2使用HPACK算法压缩HTTP头，减少了头信息的大小，提高了传输效率，尤其是在移动网络和高延迟网络上。
+* **服务器推送（Server Push）**：HTTP/2允许服务器在客户端请求资源的同时，主动推送其他资源到客户端。这可以减少客户端请求的数量，提高页面加载速度。
+* **二进制协议**：HTTP/2使用二进制格式传输数据，而不是之前的文本格式。这使得数据传输更加紧凑，提高了效率。
+* **流控制（Flow Control）**：HTTP/2引入了流控制机制，允许服务器和客户端在发送数据时进行流量控制。这可以防止网络拥塞，确保数据传输的稳定性。
+* **优先级（Priority）**：HTTP/2允许为每个流分配优先级，这意味着重要的资源可以优先被传输。这对于需要同时加载多个资源的应用（如网页）尤为重要。
+* **安全性**：HTTP/2支持TLS/SSL加密，确保数据在传输过程中的安全性。
