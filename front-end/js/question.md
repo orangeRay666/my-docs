@@ -332,7 +332,8 @@ countDown(10)
 4. 执行完所有同步任务
 5. 执行微任务队列中的任务
 6. 执行宏任务队列中的任务
- <img src="./img/js-q15.png" alt="question-15" />
+
+ <img src="./img/js-q15.png" width="600px" alt="question-15" />
 
 ## 16. 问题：事件循环-一下代码输出结果
 ```javascript
@@ -398,7 +399,7 @@ function createCycle(){
 * 定时器`setTimeout/setInterval`：忘记清除定时器可能会导致内存泄漏，特别是回调函数持有对大型对象引用时
 ```javascript
 function createTimer(){
-    const data = [/* 大量数据 */]o
+    const data = [/* 大量数据 */]
     setInterval(()=>{
         console.log('timer')
     },1000)
@@ -409,11 +410,440 @@ createTimer()
 clearInterval(timer)
 ```
 
+## 18. 问题：常用的console方法有哪些，JS调试方法
+```js
+// 普通打印
+console.log('普通打印')
+// 错误打印
+console.error('错误打印')
+// 警告打印
+console.warn('警告打印')
+// 信息打印
+console.info('信息打印')
+// 调试打印
+console.debug('调试打印')
 
-## 18. 问题：
-## 19. 问题：
-## 20. 问题：
-## 21. 问题：
-## 22. 问题：
-## 23. 问题：
-## 24. 问题：
+
+// 占位符打印
+console.log('%o a',{a:1})
+console.log('%s a','xxx')
+console.log('%d a',100)
+
+// 打印如何对象，一般用于打印DOM节点
+console.dir(document.body)
+
+// 打印表格
+console.table([{a:1,b:2},{a:3,b:4}])
+
+// 计数
+for(let i=0;i<10;i++){
+    console.count('count')
+}
+
+// 分组打印
+console.group('分组打印')
+console.log('分组打印1')
+console.log('分组打印2')
+console.groupEnd()
+
+// 计时
+console.time('a')
+const now = Date.now()
+while (Date.now() - now < 1000) {}
+console.timeEnd('a')
+
+// 断言
+console.assert(1===2,'1不等于2')
+
+// 调用栈
+function a(){
+    console.trace()
+}
+function b(){
+    a()
+}
+b()
+
+// 内存占用
+console.memory;
+```
+
+
+## 19. 问题：数组去重的方法
+* set只允许存储唯一值，利用这一特性可以实现数组去重，将数组转换成Set，然后再将Set转换成数组
+```javascript
+const arr = [1,2,3,3,4,4,5]
+const uniqueArr = [...new Set(arr)]
+console.log(uniqueArr) // [1,2,3,4,5]
+```
+* 利用`filter`方法来遍历数组，只保留第一次出现的元素
+```javascript
+const arr = [1,2,3,3,4,4,5]
+const uniqueArr = arr.filter((item,index)=>{
+    return arr.indexOf(item) === index
+})
+console.log(uniqueArr) // [1,2,3,4,5]
+```
+* 使用`reduce`方法逐个遍历数组元素，构建一个新的数组，只添加第一次出现的元素
+```javascript
+const arr = [1,2,3,3,4,4,5]
+const uniqueArr = arr.reduce((prev,cur)=>{
+    if(!prev.includes(cur)){
+        prev.push(cur)
+    }
+    return prev
+},[])
+console.log(uniqueArr) // [1,2,3,4,5]
+```
+* 使用`indexOf`方法，遍历数组，对于每个元素，检查器在数组中的索引，如果第一次出现，则添加到新数组
+```javascript
+const arr = [1,2,3,3,4,4,5]
+const uniqueArr = []
+for(let i=0;i<arr.length;i++){
+    if(uniqueArr.indexOf(arr[i]) === -1){
+        uniqueArr.push(arr[i])
+    }
+}
+console.log(uniqueArr) // [1,2,3,4,5]
+```
+* 利用`includes`方法，遍历数组，对于每个元素，检查新数组是否已经包含该元素，如果不包含，则添加到新数组
+```javascript
+const arr = [1,2,3,3,4,4,5]
+const uniqueArr = []
+for(let i=0;i<arr.length;i++){
+    if(!uniqueArr.includes(arr[i])){
+        uniqueArr.push(arr[i])
+    }
+}
+console.log(uniqueArr) // [1,2,3,4,5]
+```
+
+
+## 20. 问题：清空数组的方法
+* 直接赋值一个空数组，原地清空，所有引用同步清空，最彻底最高效的清空。
+```javascript
+const arr = [1,2,3,4,5]
+arr.length = 0
+console.log(arr) // []
+```
+* 使用splice方法，将数组的所有元素删除，时间复杂度O(n),splice需要返回被删除的元素，内部会对每个元素进行操作
+```javascript
+const arr = [1,2,3,4,5]
+arr.splice(0,arr.length)
+console.log(arr) // []
+```
+* 使用pop方法，循环弹出数组元素，直到数组为空，时间复杂度O(n)
+```javascript
+const arr = [1,2,3,4,5]
+while(arr.length){
+    arr.pop()
+}
+console.log(arr) // []
+```
+* 使用shift方法，循环删除数组第一个元素，直到数组为空。时间复杂度O(n2),因为每次删除第一个元素，数组的所有元素都需要向前移动一位
+```javascript
+const arr = [1,2,3,4,5]
+while(arr.length){
+    arr.shift()
+}
+console.log(arr) // []
+```
+* 重新绑定一个新数组引用，不涉及旧数组的删除，如果有其他变量引用了旧数组，就不会被清空。
+```javascript
+const arr = [1,2,3,4,5]
+arr = []
+console.log(arr) // []
+```
+
+
+
+## 21. 问题：JS数组常见操作方式及方法
+```js
+// 遍历
+for(let i=0;i<list.length;+++i){}    //遍历性能最好
+for(const key in list){}
+for(const item of list){}
+list.forEach(element => {});  // 仅遍历
+list.map(item => {})     // 返回构造后的新数组
+
+// 逻辑判断
+list.every(item => {})   // 全部返回true，则函数返回true
+list.some(item => {})    // 有一个返回true，则函数返回true
+
+// 过滤
+list.filter(item => {})   // 返回符合条件的新数组
+
+// 查找
+list.indexOf();  // 第一个找到的位置，否则返回-1
+list.lastIndexOf();  // 最后一个找到的位置，否则返回-1
+list.includes();  // 接收一个参数，如果数组有目标值，则返回true
+list.find();  // 如果找到目标值，返回目标值，否则返回undefined
+list.findIndex();  // 如果找到目标值，返回下标，否则返回-1
+```
+
+
+## 22. 问题：js数组reduce方法的使用
+```js
+// 累加器
+const arr = [1,2,3,4,5]
+const sum = arr.reduce((prev,cur)=>{
+    return prev + cur
+},0)
+console.log(sum) // 15
+
+// 找最大值
+const arr = [1,2,3,4,5]
+const max = arr.reduce((prev,cur)=>{
+    return prev > cur ? prev : cur
+})
+console.log(max) // 5
+
+// 数组去重
+const arr = [1,2,3,3,4,4,5]
+const uniqueArr = arr.reduce((prev,cur)=>{
+    if(!prev.includes(cur)){
+        prev.push(cur)
+    }
+    return prev
+},[])
+console.log(uniqueArr) // [1,2,3,4,5]
+
+// 归类
+const dataList = [{
+    name:'aa',
+    country:'china'
+},{
+    name:'bb',
+    country:'china'
+},{
+    name:'cc',
+    country:'usa'
+},{
+    name:'dd',
+    country:'en'
+}]
+const resultObj = dataList.reduce((preObj,cur)=>{
+    const { country } = cur;
+    if(!preObj[country]){
+        preObj[country] = []
+    }
+    preObj[country].push(cur.name)
+    return preObj;
+},{})
+console.log(resultObj) // {china:['aa','bb'],usa:['cc'],en:['dd']}
+
+// 字符串反转
+const str = "hello world"
+const resultStr = Array.from(str).reduce((prev,cur)=>{
+    return `${cur}${prev}`
+},'')
+console.log(resultStr) // "dlrow olleh"
+```
+
+
+## 23. 问题：遍历对象
+```javascript
+const obj = {a:1,b:2,c:3}
+
+// for in
+for(let key in obj){
+    console.log(key,obj[key])
+}
+
+// Object.keys
+const keys = Object.keys(obj)
+keys.forEach(key => {
+    console.log(key,obj[key])
+})
+
+// Object.entries
+const entries = Object.entries(obj)
+entries.forEach(([key,value]) => {
+    console.log(key,value)
+})
+
+// Reflect.ownKeys
+const keys = Reflect.ownKeys(obj)
+keys.forEach(key => {
+    console.log(key,obj[key])
+})
+```
+
+
+## 24. 问题：创建函数的几种方式
+* **函数声明（Function Declaration）**：使用`function`关键字定义函数，可以在任何位置声明并使用，函数声明提升（hoisting），所以可以在声明之前调用函数。
+```javascript
+function myFunction() {
+    console.log("Hello, World!");
+}
+// 调用函数
+myFunction(); // "Hello, World!"
+```
+* **函数表达式（Function Expression）**：将函数赋值给变量或属性，变量名就是函数名，与函数声明不同，函数表达式不提升，只能在声明之后调用。
+```javascript
+const myFunction = function() {
+    console.log("Hello, World!");
+}
+// 调用函数
+myFunction(); // "Hello, World!"
+```
+* **箭头函数（Arrow Function）**：使用`=>`定义函数，没有自己的`this`、`arguments`、`super`或`new.target`，不能作为构造函数，不能使用`yield`关键字。
+```javascript
+const myFunction = () => {
+    console.log("Hello, World!");
+}
+// 调用函数
+myFunction(); // "Hello, World!"
+```
+* **匿名函数（Anonymous Funtion）：函数没有名字，通常用于回调函数或临时函数
+```js
+setTimeout(() => {
+    console.log("Hello, World!");
+}, 1000);
+```
+
+## 25. 问题：创建对象的几种方式
+* **对象字面量（Object Literal）**：使用`{}`定义对象，属性名可以是字符串或标识符，属性值可以是任意类型。
+```javascript
+const obj = {
+    name:'aa',
+    age:18,
+    sex:'male',
+    sayHellow:function(){
+        console.log("Hello, World!");
+    }
+}
+```
+* **构造函数（Constructor Function）**：使用`new`关键字调用函数，函数内部使用`this`关键字指向新创建的对象，函数名通常首字母大写。
+```javascript
+function Person(name,age,sex){
+    this.name = name;
+    this.age = age;
+    this.sex = sex;
+}
+const person = new Person('aa',18,'male')
+```
+* **Object.create()**：使用`Object.create()`方法创建一个新对象，第一个参数是新对象的原型对象，第二个参数是可选的属性描述符对象。
+```javascript
+const obj = {
+    name:'aa',
+    age:18,
+    sex:'male',
+}
+const newObj = Object.create(obj)
+
+var person = Object.create(null)
+person.name = "alice"
+person.age = 20
+```
+* **工厂函数（Factory Function）**：使用函数返回一个新对象，通常用于创建多个相似对象。
+```javascript
+function createPerson(name,age,sex){
+    return {
+        name,
+        age,
+        sex,
+    }
+}
+const person = createPerson('aa',18,'male')
+```
+* 类（ES6中引入的类）：使用类定义对象，类是一种对象构造器的语法糖
+```javascript
+class Person{
+    constructor(name,age,sex){
+        this.name = name;
+        this.age = age;
+        this.sex = sex;
+    }
+}
+```
+
+
+## 26. 问题：宿主对象、内置对象、原生对象
+1. **宿主对象（Host Object）**：宿主对象是由宿主环境（通常是浏览器或Node.js）提供的对象。他们不属于JavaScript的核心，而是根据运行环境提供的功能而存在。宿主对象可以包括
+
+    * 浏览器环境中`window`,`document`, `XMLHttpRequest`
+    * Node.js环境中的`global`,`process`
+
+    宿主对象的定义和行为取决于宿主环境，因此他们可能在不同的环境中有不同的特性。
+2. **内置对象（Built-in Object）**：由JavaScript引擎提供的对象，他们包含在JavaScript的标准规范中。这些对象包括全局对象，数学对象，日期对象，正则表达式等，例如`Math`、`Date`、`Array`、`Object`等。内置对象的属性和方法是由引擎定义的，开发人员可以直接在任何JavaScript环境中使用这些对象。
+```js
+const pi = Math.PI;  // 访问全局对象Math
+var currentDate = new Date();  // 访问全局对象Date
+```
+3. **原生对象（Native Object）**：原生对象是JavaScript语言的一部分，但它们不是内置对象。原生对象是通过构造函数或字面量方式创建的对象，例如数组，字符串，函数，对象等。这些对象可以通过Javascript代码自定义，它们通常是开发人员用来构建应用程序的基本构建块。
+```js
+const arr = [1,2,3]
+const func = function(){}
+const obj = {key:"value"}
+```
+
+
+## 27. 问题：如何区分数组和对象？
+* 语法区别
+    * 数组使用方括号`[]`定义，元素之间使用逗号分隔。
+    * 对象使用花括号`{}`定义，属性名和属性值之间使用冒号分隔，属性之间使用逗号分隔。`
+* 方法和属性区别
+    * 数组具有一系列方法和属性，用于操作和查询元素，例如`push()`,`pop()`,`shift()`,`unshift()`,`length`等。
+    * 对象没有数组的方法，但它们有属性，可以通过属性名称访问值。
+* 访问区别
+    * 数组的元素可以通过数字索引（从0开始）来访问
+    * 对象的属性名可以是字符串或符号，可以包含任何字符
+* 用途区别
+    * 数组通常用于存储一系列有序的值，可以通过索引访问
+    * 对象通常用于表示实体或实体的属性，每个属性都有一个唯一的名称
+
+## 28. 问题：什么是类数组（伪数组），如何将其转化为真实的数组？
+类数组（伪数组）是一种类似数组的对象，它们具有类似数组的结构，即具有数字索引和`length`属性，但不具有数组对象上的方法和功能。
+
+**常见的类数组**
+* 函数内部的`arguments`对象
+* DOM元素集合（例如`document.querySelectorAll()`返回的节点列表）
+* 一些内置方法（例如`getElementByTagName`返回的集合）
+
+**类数组转化为真实的数组方法**
+1. Array.from()方法
+```js
+const nodeList = document.querySelectorAll('.my-elements');  // 获取DOM元素集合
+const arrayFromNodeList = Array.from(nodeList);  // 将节点列表转换为数组
+```
+2. Array.prototype.slice.call()方法
+```js
+const nodeList = document.querySelectorAll('.my-elements'); 
+const arrayFeomNodeList = Array.prototype.slice.call(nodeList);  // 将类数组nodeList转换为数组
+```
+3. Spread运算符
+```js
+const nodeList = document.querySelectorAll('.my-elements'); 
+const arrayFeomNodeList = [...nodeList]
+```
+
+
+## 29. 问题：什么是作用域链
+作用域链是JavaScript中用于查找变量的一种机制，它是由一系列嵌套的作用域对象构成的链式结构，每个作用域对象包含了在该作用域中声明的变量以及对外部作用域的引用，目的是确定在给定的执行上下文中如何查找变量当您引用一个变量时，JavaScript引擎会从当前作用域开始查找该变量，如果在当前作用域中找不到，就会继续查找外部作用域，直到找到该变量或到达全局作用域。如果在作用域链中找不到该变量，就会抛出引用错误。
+
+作用域链的形成方式：
+1. 在函数内部，会创建一个新的作用域对象，包含了函数的参数，局部变量以及对外部作用域的引用
+2. 如果在函数内部嵌套了其他函数，那么每个内部函数都会创建自己的作用域对象，形成一个链
+3. 这个链条会一直延伸到全局作用域
+
+
+## 30. 问题：作用域链如何延长
+* 闭包
+```js
+function makeCounter(){
+    var count = 0;
+    retrun function(){
+        count++;
+        return count;
+    }
+}
+
+var counter = makeCounter();
+var counter2 = makeCounter();
+console.log(counter());  // 1
+console.log(counter());  // 2
+
+console.log(counter2());  // 1 每个counter具有自己的作用域链，且都延长了count的作用域
+```
+
