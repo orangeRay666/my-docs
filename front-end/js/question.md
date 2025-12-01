@@ -847,3 +847,221 @@ console.log(counter());  // 2
 console.log(counter2());  // 1 每个counter具有自己的作用域链，且都延长了count的作用域
 ```
 
+
+## 31. 问题：DOM节点的Attribute和Property的区别
+* Attribute
+    * 是HTML元素的一部分，用于描述元素的固有信息，如id，class，src，href等
+    * 可以通过DOM方法（如`getAttribute()`和`setAttribute()`）来访问和修改
+    * 通常是字符串类型
+* Property
+    * 是JavaScript中的DOM对象的一部分，用于表示元素的当前状态
+    * 可以直接访问和修改，通过点运算符访问
+    * 可以是任意类型，包括函数和对象
+* **总结**
+    * Attribute是HTML标记中的属性，它们以字符串形式存储在HTML元素的标记中
+    * Property是JavaScript中的DOM对象的属性，它们表示元素在文档中的状态和属性，可以是不同的数据类型
+    * Attribute始终是字符串，而property的数据类型可以是任意类型，包括函数和对象
+    * 部分Attribute会自动同步到对应的Property，例如`id`，`class`，`src`，`href`等，但自定义的Attribute不会自动同步到Property，例如`data-*`自定义属性
+
+## 32. 问题：DOM结构操作创建，添加，移除，移动，复制，查找结点
+1. 创建节点：
+```js
+// 创建新元素节点
+const newElement = document.createElement('div');
+
+// 创建新文本节点
+const newText = document.createTextNode('Hello World');
+
+// 创建文档片段
+const fragment = document.createDocumentFragment();
+```
+2. 添加节点
+```js
+// 创建新元素节点
+const newElement = document.createElement('div');
+
+// 添加为子节点
+parentElement.appendChild(newElement);
+
+// 在参考节点之前插入新节点
+parentElement.insertBefore(newElement, referenceElement);
+
+```
+3. 移除节点
+```js
+// 移除子节点
+parentElement.removeChild(childElement);
+
+// 清空所有子节点
+parentElement.innerHTML = '';
+```
+4. 移动节点
+```js
+// 移动节点到新位置
+newParentElement.appendChild(childElement);
+```
+5. 复制节点
+```js
+// 复制节点（浅拷贝）
+const clonedElement = element.cloneNode(true);  // true表示深拷贝，包括子节点
+```
+6. 查找节点
+```js
+// 通过id查找元素
+const elementById = document.getElementById('myElement');
+
+// 使用css选择器查找元素
+const element = document.querySelector('.my-element');  // 返回第一个匹配的元素
+
+// 使用节点遍历方法查找元素
+const firstChile = parentElement.firstChild;  // 返回第一个子节点，包括文本节点
+
+// 查找子节点
+const childElements = parentElement.children;  // 返回一个实时的HTMLCollection
+
+// 查找后代节点
+const descendantElements = parentElement.querySelectorAll('selector');  // 返回一个静态的NodeList
+
+// 查找父节点
+const parentElement = element.parentNode;
+
+// 查找兄弟节点
+const nextSibling = element.nextSibling;  // 包括文本节点
+const previousSibling = element.previousSibling;  // 包括文本节点
+```
+
+
+## 33. 问题：DOM的事件模型
+1. **事件对象（Event Object）**：事件对象是一个包含有关事件的信息的对象。它包括事件的类型，目标元素，鼠标位置，按下的键等信息。事件处理程序可以访问事件对象来了解事件的详细信息。
+2. **事件类型（Event Type）**：事件类型指定了发生的事件的种类，例如点击事件（click），鼠标移动事件（mousemove），键盘事件（keydown）等。事件类型是一个字符串，用于标识事件的类型。
+3. **事件目标（Event Target）**：事件目标是事件触发的元素，事件将在目标元素上执行事件处理程序。事件目标可以是文档、元素或其他DOM节点。
+4. **事件冒泡和事件捕获（Event Bubbling and Event Capturing）**：事件可以在DOM树中冒泡或捕获。事件冒泡从目标元素开始，逐渐向上传播到根元素。事件捕获从根元素开始，逐渐向下传播到目标元素。
+5. **事件监听器（Event Listeners）**：事件监听器是函数，用于处理特定类型的事件。它可以附加到元素，以便在事件发生时执行。通常使用`addEventListener`方法来添加事件监听器。
+6. **事件处理程序（Event Handlers）**：事件处理程序是在事件发生时执行的函数。它可以是匿名函数或命名函数。事件处理程序可以访问事件对象，以便获取事件的详细信息，处理特定事件类型的事件。
+7. **事件委托（Event Delegation）**：事件委托是一种技术，它利用事件冒泡的机制，将事件处理程序附加到父元素上，而不是直接附加到子元素上。当子元素触发事件时，事件会冒泡到父元素，从而触发事件处理程序。事件委托的优势是可以动态添加和移除子元素，而不需要为每个子元素都添加事件处理程序。
+8. **取消事件（Canceling Events）**：取消事件是指在事件处理程序中阻止事件的默认行为或传播。可以使用`event.preventDefault()`方法取消事件的默认行为，使用`event.stopPropagation()`方法取消事件的传播。
+9. **停止事件传播（Stopping Event Propagation）**：停止事件传播是指在事件处理程序中阻止事件继续冒泡或捕获。可以使用`event.stopPropagation()`或`stopImmediatePropagation`方法停止事件的传播。
+
+
+## 34. 问题：事件三要素
+1. **事件源（Event Source）**：事件源是事件的发出者或触发者，它是产生事件的对象或元素，事件源通常是用户与页面交互的元素，如按钮，链接，输入框等
+2. **事件类型（Event Type）**：事件类型是值事件的种类或类型，描述了事件是什么样的行为或操作，不同的事件类型包括点击事件（click）鼠标移动事件（mousemove）键盘事件（keydown）表单提交事件（submit）等
+3. **事件处理程序（Event Handler）**：事件处理程序是事件触发后要执行的代码块或函数，它定义了当事件发生时要执行的操作。事件处理程序通常由开发人员编写，用于响应事件并执行相应的逻辑。
+
+
+这三要素一起构成了事件的基本信息。当用户与页面交互时，事件源会触发特定类型的事件，然后事件处理程序会捕获并处理事件，执行相关的操作。
+
+
+## 35. 问题：如何绑定事件和解除事件
+**绑定事件**
+```js
+const element = document.getElementById('myElement')
+// 绑定点击事件
+element.addEventListener('click', function() {
+  console.log('点击事件触发');
+});
+// 绑定鼠标移动事件
+element.addEventListener('mousemove', function() {
+  console.log('鼠标移动事件触发');
+});
+// 绑定键盘事件
+element.addEventListener('keydown', function() {
+  console.log('键盘事件触发');
+});
+```
+**解除事件**
+```js
+// 解除点击事件的绑定
+element.removeEventListener('click', clickHandler);
+// 解除鼠标移动事件的绑定
+element.removeEventListener('mousemove', mouseMoveHandler);
+// 解除键盘事件的绑定
+element.removeEventListener('keydown', keyDownHandler);
+```
+
+
+## 36. 问题：事件冒泡和事件捕获的区别，如何阻止
+<img src="./img/js-q36.png" alt="question-36-1" />
+
+**事件冒泡（Bubbling）**
+* 事件从触发事件的目标元素开始，逐级向上冒泡DOM树的根节点
+* 首先执行目标元素上的事件处理程序，然后是父元素，再是更高层次的祖先元素
+* 事件冒泡是默认的事件传播方式
+
+**事件捕获（Capturing）**
+* 事件从DOM树的根节点开始，逐级向下传播到触发事件的目标元素
+* 首先执行根元素上的事件处理程序，然后是子元素，再是更具体的元素
+* 事件捕获通常需要显示启动，需要通过设置事件监听器`addEventListener`的第三个参数为`true`来启用
+
+**应用**：addEventListener第三个参数：true为捕获，false为冒泡，默认false
+* event.stopPropagation()阻止冒泡
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style type="text/css">
+        .parent{
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .child{
+            padding: 20px;
+            background-color: lightblue;
+        }
+    </style>
+</head>
+<body>
+    <div class="parent">
+        <div class="child">
+            <button id="btn">点击我</button>
+        </div>
+    </div>
+    <script>
+        const parent = document.querySelector('.parent');
+        const child = document.querySelector('.child');
+        const btn = document.getElementById('btn');
+
+        parent.addEventListener('click',()=>{
+            console.log('点击了parent')
+        },true)
+        child.addEventListener('click',()=>{
+            console.log('点击了child')
+        })
+        btn.addEventListener('click',()=>{
+            console.log('点击了btn')
+            event.stopPropagation(); //阻止事件冒泡
+        },false)
+    </script>
+
+
+</body>
+</html>
+```
+
+
+## 37. 问题：事件委托
+事件委托是一种常见的JavaScript编程技巧，它的核心思想是将事件处理程序附加到一个祖先元素上，而不是直接附加到每个子元素上，当事件在子元素上冒泡时，祖先元素捕获事件并根据事件目标来确定如何处理事件。
+
+1. **性能优势**：事件委托可以减少事件处理程序的数量，特别是在大型文档中，因为您只需为一个祖先元素添加一个事件处理程序。这降低了内存消耗和提高了性能，因为不必为每个子元素都绑定事件。
+2. **动态元素**：事件委托适用于动态生成的元素，因为无需为新添加的元素单独绑定事件，而是在祖先元素上继续使用相同的事件处理程序。
+3. **代码简洁性**：通过将事件处理逻辑集中在祖先元素上，代码更加简洁和维护起来也更加方便。因为不需要为每个子元素编写相似的事件处理代码。
+4. **处理多个事件类型**：通过在祖先元素上处理多个事件类型，可以实现更多的灵活性。例如，您可以在祖先元素上处理点击事件，鼠标移动事件和键盘事件，而不必为每个事件类型创建单独的事件处理程序。
+
+示例：假设你有一个无序列表（`<ul>`）中的多个列表项（`<li>`），你希望在点击任何项时执行某些操作。你可以使用事件委托来处理这些点击事件，而不必为每个列表项单独添加事件处理程序。
+```js
+const ulElement = document.querySelector("ul")
+ulElement.addEventListener("click",function(event){
+    if(event.target.tagName === "LI"){
+        // 处理点击事件
+    }
+})
+```
+在上述示例中，事件委托将点击事件处理程序附加到`<ul>`元素上，并使用`event.target`来确定被点击的列表项。这种方法使得点个点击事件处理程序能够处理整个列表的点击事件。
+
+
+## 38. 问题：
+## 39. 问题：
+## 40. 问题：
