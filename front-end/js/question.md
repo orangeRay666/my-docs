@@ -1062,6 +1062,554 @@ ulElement.addEventListener("click",function(event){
 在上述示例中，事件委托将点击事件处理程序附加到`<ul>`元素上，并使用`event.target`来确定被点击的列表项。这种方法使得点个点击事件处理程序能够处理整个列表的点击事件。
 
 
-## 38. 问题：
-## 39. 问题：
-## 40. 问题：
+## 38. 问题：JavaScript动画喝CSS3动画有什么区别
+实现方式：
+* JavaScript动画：通过编写JavaScript代码来操作DOM元素的样式和属性，从而实现动画效果。通常使用`setInterval`，`setTimeout`，`requestAnimationFrame`或动画库来实现动画。
+* CSS3动画：利用CSS3的`@keyframes`规则和`animation`属性来定义动画效果，在css中定义关键帧和过渡效果来创建动画。
+
+性能：
+* JavaScript动画：可以实现更复杂的动画效果，因为可以在JavaScript中使用条件语句，循环和其他编程概念。可以对动画进行更多的控制，例如暂停，恢复和取消动画。但是性能可能较低，因为每次动画更新都需要重新渲染DOM元素，不合理的动画可能需要大量计算从而会导致性能问题。
+* CSS3动画： 性能较高，因为动画是在浏览器的渲染引擎中处理的，而不是在JavaScript中。可以使用硬件加速来提高性能。只能实现简单的动画效果，因为CSS3动画只能定义关键帧和过渡效果。不能对动画进行更多的控制，例如暂停，恢复和取消动画。
+
+适用场景：
+* JavaScript动画：适用于需要控制和交互性的场景，例如游戏中的角色移动，动画效果复杂的页面交互等，可以响应用户输入，并在运行时根据条件调整动画。
+* CSS3动画：适用于简单的动画效果，例如元素的淡入淡出，滑动等。因为CSS3动画是在浏览器中处理的，所以性能较高，并且可以利用硬件加速来提高性能。适用于许多常见的动画需求，例如页面加载动画，元素的显示隐藏等。
+
+可维护性：
+* JavaScript动画：因为动画逻辑是在JavaScript中实现的，所以维护起来相对复杂。需要确保动画代码与DOM结构和其他JavaScript代码保持同步，并且在需要修改动画效果时需要更新JavaScript代码。
+* CSS3动画：因为动画效果是在CSS中定义的，所以维护起来相对简单。只需要更新CSS代码即可修改动画效果，而不需要修改JavaScript代码。
+
+
+## 39. 问题：获取元素位置
+1. getBoundingClientRect()方法：
+```js
+const element = document.getElementById('myElement');
+const rect = element.getBoundingClientRect();
+console.log(rect);
+// 输出：
+// {
+//   top: 100,
+//   left: 200,
+//   bottom: 300,
+//   right: 400,
+//   width: 200,
+//   height: 200
+// }
+```
+2. offsetTop和offsetLeft属性(元素的顶部和左侧距离最近的定位祖先元素的顶部和左侧的距离)：
+```js
+const element = document.getElementById('myElement');
+const top = element.offsetTop;
+const left = element.offsetLeft;
+console.log(top, left);
+// 输出：100 200
+```
+3. pageX和pageY属性(鼠标事件，整个文档的左上角，包括滚动距离)：
+```js
+const element = document.getElementById('myElement');
+element.addEventListener("mousemove",function(event){
+    console.log("鼠标X坐标", event.pageX);
+    console.log("鼠标Y坐标", event.pageY);
+})
+```
+4. clientX和clientY属性(鼠标事件，相对于浏览器窗口的左上角，不包括滚动距离)：
+```js
+const element = document.getElementById('myElement');
+element.addEventListener("mousemove",function(event){
+    console.log("鼠标在视口中的X坐标", event.clientX);
+    console.log("鼠标在视口中的Y坐标", event.clientY);
+})
+```
+
+
+## 40. 问题：documrnt.write和innerHTML的区别
+1. 输出位置：
+    * `document.write`：将内容直接写入到页面的当前位置，他会覆盖已存在的内容。如果在页面加载后调用，会覆盖整个页面内容，因此不会在文档加载后使用它
+    * `innerHTML`：是DOM元素的属性，可以用来设置或获取元素的HTML内容。可以将内容写入到指定元素的innerHTML属性中，不会覆盖文档的当前内容。
+
+2. 用法：
+    * `document.write`：通常用于在页面加载过程中动态生成HTML内容。是一种旧的，不推荐使用，可能会导致页面结构混乱，不易维护
+    * `innerHTML`：通常用于通过JavaScript动态更改特定元素的内容，更灵活，允许以更精准的方式操作DOM
+
+3. DOM操作：
+    * `document.write`：不是DOM操作，仅用于输出文本到页面
+    * `innerHTML`：是DOM操作，允许操作指定元素内容，包括添加，删除和替换元素的HTML内容。
+
+## 41. 问题：mouseover和mouseenter的区别
+1. 触发条件：
+    * `mouseover`：当鼠标指针从一个元素的外部进入元素的范围内时触发该事件。它会进入元素内部时触发一次，然后在鼠标在元素内部移动时继续触发。
+    * `mouseenter`：当鼠标指针从一个元素的外部进入元素的范围内时触发该事件。不同于`mouseover`，只在第一次进入元素内部时触发一次，之后鼠标在元素内部移动不会再触发。
+2. 事件冒泡：
+    * `mouseover`：事件冒泡，当鼠标移动到子元素上时，也会触发`mouseover`事件。
+    * `mouseenter`：事件不冒泡，当鼠标移动到子元素上时，不会触发`mouseenter`事件，只有真正进入指定元素的时候触发。
+3. 应用场景：
+    * `mouseover`：更常用于需要监听鼠标进入和离开元素的情况，特别是当需要处理子元素的情况。
+    * `mouseenter`：更常用于只需要鼠标第一次进入元素时触发事件的情况，通常用于菜单，工具提示等需要忽略子元素的情况。
+```js
+const test = document.getElementById("test");
+
+// 当光标移到无序列表上时，此处理函数将仅执行一次
+test.addEventListener(
+  "mouseenter",
+  (event) => {
+    // 突出显示鼠标悬停目标
+    event.target.style.color = "purple";
+
+    // 短暂延迟后重置颜色
+    setTimeout(() => {
+      event.target.style.color = "";
+    }, 500);
+  },
+  false,
+);
+
+// 每次将光标移动到不同的列表项上时，此处理函数都会执行
+test.addEventListener(
+  "mouseover",
+  (event) => {
+    // 突出显示鼠标悬停目标
+    event.target.style.color = "orange";
+
+    // 短暂延迟后重置颜色
+    setTimeout(() => {
+      event.target.style.color = "";
+    }, 500);
+  },
+  false,
+);
+```
+
+## 42. 问题：元素拖动实现方案
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style type="text/css">
+       body{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .draggable{
+            width: 200px;
+            height: 200px;
+            background-color: lightblue;
+            cursor: grab;
+            color: #fff;
+            text-align: center;
+            line-height: 200px;
+            user-select: none;
+            position: absolute;
+        }
+    </style>
+</head>
+<body>
+    <div class="draggable" id="draggableElement">拖动我</div>
+    <script>
+        const draggableElement = document.getElementById('draggableElement');
+        let isDragging = false;
+        let offsetX, offsetY;
+        draggableElement.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            offsetX = e.clientX - draggableElement.getBoundingClientRect().left;
+            offsetY = e.clientY - draggableElement.getBoundingClientRect().top;
+            draggableElement.style.cursor = 'grabbing';
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            draggableElement.style.left = `${e.clientX - offsetX}px`;
+            draggableElement.style.top = `${e.clientY - offsetY}px`;
+        });
+        document.addEventListener('mouseup', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            draggableElement.style.cursor = 'grab';
+        });
+    </script>
+
+</body>
+</html>
+```
+
+## 43. 问题：script标签async 和 defer 的区别
+* **默认情况（无async和defer）**：如果`<script>`标签没有sync和defer属性，浏览器会按照标签在HTML中的顺序，阻塞页面渲染，下载后并同步加载脚本，脚本会阻塞页面的加载和渲染
+* **async属性**：脚本会异步下载并执行，不会阻塞页面的加载和渲染。脚本将在下载完成后立即执行，而不管其在HTML中的位置。
+```html
+<script src="async.js" async></script>
+```
+* **defer属性**：脚本会异步下载，但不会立即执行。它将在文档解析完成（DOMContentLoaded事件之前）时按照它们在文档中的顺序执行
+```html
+<script src="defer.js" defer></script>
+```
+* **总结**：如果没有`async`,`defer`属性，脚本默认是同步的，会阻塞页面加载。如果使用`async`属性，脚本会异步加载和执行。如果使用`defer`属性，脚本也会异步加载，但在文档解析完成后按顺序执行。根据页面性能和脚本执行时机的需求，选择适当的属性
+
+
+## 44. 问题：ES6的继承和ES5的继承的区别
+**ES6类继承**
+1. **Class和extends关键字**：ES6引入了`class`和`extends`关键字，使得创建类和继承更加直观和易于理解。类提供了一种更面向对象的编程方式。
+2. **构造函数**：ES6类继承通过构造函数`constructor`来定义类的初始化逻辑。并通过`super()`来调用父类的构造函数，以确保父类的属性被正确初始化。
+3. **方法定义**：类中的方法不再需要使用原型链，而是可以直接定义在类内部。这让方法的定义更集中和易读。
+4. **super关键字**：`super`关键字用于在子类中调用父类的方法，包括构造函数和普通方法。
+```js
+class Animal {
+    constructor(name) {
+        this.name = name;
+    }
+    speak(){
+        console.log(this.name+'make a sound')
+    }
+}
+class Dog extends Animal {
+    constructor(name, breed) {
+        super(name); // 调用父类的构造函数
+        this.breed = breed;
+    }
+    speak(){
+        console.log(this.name+'barks')
+    }
+}
+
+const myDog = new Dog("orange","Golden Retriever")
+myDog.speak() // orange barks
+```
+**ES5原型继承**
+* 原型链继承：
+```js
+function Animal(name) {
+    this.name = name;
+}
+Animal.prototype.speak = function() {
+    console.log(this.name + ' make a sound');
+}
+function Dog(breed) {
+    this.breed = breed;
+}
+Dog.prototype = new Animal('Unknown'); // 设置原型链继承
+
+var myDog = new Dog('xxxxx')
+myDog.speak()// Unknown make a sound
+```
+**缺点**
+* 属性共享：子类共享了父类原型上的属性，一旦父类有引用类型，其中一个实例修改了这个引用类型的属性值，会影响所有其他实例
+* 不能传递参数：无法向父类构造函数传参，因为父类构造函数已经被调用
+
+**构造函数继承**
+```js
+function Animal(name){
+    this.name = name;
+}
+function Dog(name,breed){
+    Animal.call(this,name);   // 使用构造函数继承，继承属性
+    this.breed = breed
+}
+
+var myDog = new Dog("orange","xxxx")
+console.log(myDog.name);   // orange
+```
+在实例中,Dog构造函数内部调用了Animal构造函数，从而继承了Animal的属性
+
+**缺点**
+* 属性继承：构造函数继承中继承了父类的属性，而没有继承父类的方法，子类无法访问父类原型上的方法
+* 属性复制：将属性赋值到子类实例中，而不是通过原型链共享。导致内存浪费，特别创建大量实例时。
+* 不能继承方法：子类无法继承父类原型上的方法，因此会导致代码重复和内存浪费
+
+**寄生组合继承**
+结合了结构函数继承和原型继承，通过在子类构造函数内部调用父类构造函数来继承属性，然后通过`Object.create()`方法来继承父类原型上的方法，克服构造函数继承和原型继承各自的缺点。
+```js
+function Animal(name){
+    this.name = name
+}
+Animal.prototype.speak = function(){
+    console.log(this.name + ' make a sound')
+}
+
+function Dog(name,breed){
+    // 使用构造函数继承，继承属性
+    Animal.call(this.name)
+    this.breed = breed
+}
+
+// 使用Object.create 继承原型
+Dog.prototype = Object.create(Animal.prototype)
+Dog.prototype.constructor = Dog    // 修复constructor引用
+
+Dog.prototype.speak = function(){
+    console.log(this.name + ' barks')
+}
+
+var myDog = new Dog("orange", "xxxxx")
+myDog.speak();  // orange barks
+```
+首先使用构造函数继承来继承属性，然后使用`Object.create()`继承了父类的原型。这种方式避免了原型链中属性共享的问题，并允许更灵活地定义子类的构造函数和方法。
+
+
+## 45. 问题：Promise
+Promise是JavaScript中处理异步操作的一种模式和对象，它提供了一种更优秀的方式来处理异步代码，尤其是处理回调地狱（callback hell）问题。
+
+**Promise的三种状态**
+* pending(进行中)：promise的初始化状态，表示异步操作尚未完成，也不失败
+* fulfilled(已完成)：表示异步操作成功完成，其结果值可用
+* rejected(已失败)：表示异步操作失败，包含失败的原因
+```js
+const myPromise = new Promise((resolve,reject)=>{
+    // 异步操作 成功调用resolve失败调用reject
+})
+```
+**模拟实现**
+```js
+function MyPromise(excutor){
+    // 初始化状态为pending
+    this._state = 'pending'
+    // 成功时的结果值
+    this._value = undefined
+
+    // 回调函数数组，用于存储成功和失败回调
+    this._callbacks = []
+
+    // 定义resolve函数，用于将promise状态从pedding变为fulfilled
+    const resolve = (value) => {
+        if(this._state === 'pending'){
+            this._state = 'fulfilled'
+            this._value = value
+            this._callbacks.forEach(callback => callback.onFulfilled(value))
+        }
+    };
+
+    // 定义reject函数，用于将promise状态从pending变为rejected
+    const reject = (reason) => {
+        if(this._state === 'pending'){
+            this._state = 'rejected'
+            this._value = reason
+            this._callbacks.forEach(callback => callback.onRejected(reason))
+        }
+    };
+
+    // 执行executor函数，传入resolve和reject作为参数
+    try{
+        excutor(resolve,reject)
+    }
+    catch(error){
+        reject(error)
+    }
+}
+
+MyPromise.prototype.then = function(onFulfilled,onRejected){
+    // 处理回调函数中的this指向问题
+   if(this._state === 'fulfilled'){
+        onFulfilled(this._value)
+    }else if(this._state === 'rejected'){
+        onRejected(this._value)
+    }else if(this._state === 'pending'){
+        this._callbacks.push({
+            onFulfilled,
+            onRejected
+        })
+    }
+}
+
+// 示例用法
+const promise = new MyPromise((resolve,reject)=>{
+    setTimeout(()=>{
+        resolve('success')
+    },1000)
+})
+promise.then(
+    (result)=>{
+    console.log("成功",result)
+    },
+    (error)=>{
+        console.log("失败",error)
+    }
+)
+```
+
+
+## 46. 问题：Promise all/allSettle/any/race的使用场景
+* promise.all
+```js
+/**
+ * 全部任务执行“成功”后，进入then逻辑
+ * 返回所有任务的“结果”
+ * 只要一个任务失败，进入catch逻辑
+ */
+Promise.all([
+    Promise.resolve(1),
+    Promise.resolve(2),
+    Promise.resolve(3)
+]).then((results)=>{
+    console.log(results)
+}).catch((error)=>{
+    console.log("失败",error)
+})
+
+/**
+ * 场景：并发请求多个任务 且 不容忍失败
+ * 例如：并发请求多个接口，只有所有接口都返回成功，才继续后续操作
+ */
+Promise.all([
+    // 并发请求多个接口
+    // 板块A 请求接口api-1
+    // 板块B 请求接口api-2
+    // 板块C 请求接口api-3
+]).then((results)=>{
+    render('pannel A',results[0])
+    render('pannel B',results[1])
+    render('pannel C',results[2])
+}).catch((error)=>{
+    console.log("失败",error)
+})
+```
+* promise.allSettle
+```js
+/**
+ * 全部任务执行“完成”后，进入then逻辑
+ * 返回所有任务的“状态”和“结果”
+ * 不关心任务是否成功，只关注任务是否完成
+ * 不会进入catch逻辑
+ */
+Promise.allSettle([
+    Promise.resolve(1),
+    Promise.resolve(2),
+    Promise.resolve(3)
+]).then((results)=>{
+    console.log(results)
+}).catch((error)=>{
+    console.log("失败",error)
+})
+
+/**
+ * 场景：并发请求多个任务，且容忍失败
+ * 例如：前端埋点日志上报，无论是否成功，都需要继续后续操作
+ */
+Promise.allSettle([
+    // 上传日志片段1
+    // 上传日志片段2
+    // 上传日志片段3
+]).then((results)=>{
+    console.log("success",results)
+}).catch((error)=>{
+    console.log("失败",error)
+})
+```
+* promise.any
+```js
+/**
+ * 首个任务执行成功后，进入then逻辑
+ * 返回第一个成功任务的结果
+ * 如果所有任务都失败，进入catch逻辑
+ */
+Promise.any([
+    new Promise((resolve,reject)=>{
+        setTimeout(()=>{
+            resolve('success A')
+        },1000)
+    }),
+    new Promise((resolve,reject)=>{
+        setTimeout(()=>{
+            resolve('success B')
+        },2000)
+    }),
+    new Promise((resolve,reject)=>{
+        setTimeout(()=>{
+            reject('error C')
+        },3000)
+    }),
+]).then((result)=>{
+    console.log(result)
+}).catch((error)=>{
+    console.log("失败",error)
+})
+
+/**
+ * 场景：一个任务成功即可继续，不关心其他失败的任务
+ * 抢票
+ */
+Promise.any([
+    // 抢票地址1
+    // 抢票地址2
+    // 抢票地址3
+]).then((res) => {
+    // 抢票成功之后的操作
+}).catch(error => {
+    console.log('error',error)
+})
+```
+* promise.race
+```js
+/**
+ * 首个任务执行完成后触发
+ * 成功：进入then逻辑返回任务结果
+ * 失败：进入catch逻辑
+ */
+Promise.race([
+    new Promise((resolve,reject)=>{
+        setTimeout(()=>{
+            reject('p1')
+        },1000)
+    }),
+    new Promise((resolve,reject)=>{
+        setTimeout(()=>{
+             reject('p2')
+        },2000)
+    }),
+    new Promise((resolve,reject)=>{
+        setTimeout(()=>{
+             reject('p3')
+        },3000)
+    }),
+]).then((result)=>{
+    console.log(result)
+}).catch((error)=>{
+    console.log("失败",error)
+})
+
+/**
+ * 场景：需要获取最快返回的结果，不关心其他任务
+ * 请求超时控制
+ */
+
+async function selfFetch(api,{timeout}){
+    return Promise.race([
+        new Promise(resolve => {
+            setTimeout(() => {
+                resolve('fetch success')
+            }, 500)
+        }),
+        new Promise((resolve,reject)=>{
+            setTimeout(()=>{
+                reject('timeout')
+            },timeout)
+        })
+    ])
+}
+selfFetch('https://www.baidu.com',{timeout:3000}).then((res)=>{
+    console.log(res)
+}).catch((error)=>{
+    console.log(error)
+})
+
+```
+
+
+## 47. 问题：如何解决异步回调地狱
+## 48. 问题：链式调用实现方式
+## 49. 问题：new操作符内在逻辑
+## 50. 问题：bind apply call 的区别及内在实现
+## 51. 问题：Ajax避免浏览器缓存方法
+## 52. 问题：eval的功能和危害
+## 53. 问题：惰性函数
+## 54. 问题：js监听对象属性的变化
+## 55. 问题：prototype和__proto__的区别与关系
+## 56. 问题：原型链的实践
+## 57. 问题：如何理解箭头函数没有this
+## 58. 问题：上下文与this的指向
+## 59. 问题：
+## 60. 问题：
+## 61. 问题：
+## 62. 问题：
