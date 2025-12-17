@@ -52,6 +52,7 @@ export default defineConfig({
         items: [
           { text: 'HTML+CSS 题目', link: '/front-end/html+css/question' },
           { text: 'JavaScript 题目', link: '/front-end/js/question' },
+          { text: 'TypeScript 题目', link: '/front-end/ts/question' },
           { text: '计算机网络 题目', link: '/front-end/http/question' },
         ]
       },

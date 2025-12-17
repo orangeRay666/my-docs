@@ -1818,14 +1818,379 @@ xhr.send()
 
 
 ## 52. 问题：eval的功能和危害
+`eval`是JavaScript中的一个全局函数，用于将包含JavaScript代码的字符串作为参数，并执行该代码。它的作用是动态执行字符串中的JavaScript代码，可以在运行时生成JavaScript代码并执行它。
+例如：可以使用`eval`动态执行用户输入的代码，或者根据某些条件动态生成代码。
+```js
+var x = 10;
+var y = 20;
+var code = 'x + y';
+var result = eval(code)  // 执行x + y,result值为30
+```
+`eval`函数具有潜在的危害，主要包括一下几个方面：
+1. **安全风险**：使用`eval`可能会导致安全漏洞，因为它允许执行来自不受信任的来源的代码。如果有恶意代码被注入到`eval`中，它可能会访问和修改你的应用程序的敏感数据，设置执行恶意操作。
+2. **性能问题**：`eval`的使用会导致性能下降，因为它需要在运行时解析和执行代码。它可能会影响应用程序的响应时间，特别是在循环中频繁使用的情况下。
+3. **可读性问题**：会使代码变得难以理解和维护。由于执行得代码是字符串，很难进行分析和调试
+4. **移植性问题**：依赖`eval`的代码可能不具备良好的移植性，因为不同的JavaScript引擎对`eval`的实现可能有差异，从而导致代码在不同环境中出现问题
+5. **限制代码优化**：可能会阻碍JavaScript引擎的代码优化，因为它使得引擎难以以静态分析和优化，从而影响性能。
+
+因此，通常情况下，应该尽量避免使用`eval`，特别是在处理来自不受信任的源的数据时，如果需要动态执行代码，可以考虑使用其他更安全的方式，例如使用函数，function构造函数，闭包等。
+
 
 ## 53. 问题：惰性函数
+惰性函数是指在第一次调用时执行特定操作，之后将函数重写或修改，以便在以后的调用中直接返回缓存的结果，而不再执行该操作。这通常用于性能优化，以避免重复执行开销较大的操作。
+```js
+function addEvent(element,type,handler){
+    // 第一次调用时检查浏览器支持的事件监听方式
+    if(element.addEventListener){
+        // 现代浏览器支持 addEventListener
+        addEvent = function(element,type,handler){
+            element.addEventListener(type,handler,false)
+        }
+    }else if(element.attachEvent){
+        // IE浏览器支持 attachEvent
+        addEvent = function(element,type,handler){
+            element.attachEvent('on' + type,handler)
+        }
+    }else{
+         // 最古老的浏览器，使用DOM0级事件处理
+        addEvent = function(element,type,handler){
+            element['on' + type] = handler
+        }
+    }
+    // 调用新定义的函数并返回结果
+    addEvent(element,type,handler)
+}
+
+// 使用示例
+const myButton = document.getElementById('myButton')
+addEvent(myButton,'click',function(){
+    console.log('按钮被点击了')
+})
+
+```
+
+
 ## 54. 问题：js监听对象属性的变化
+* **Object.defineProperty**
+```js
+const person = {
+    firstName:'张三',
+    lastName:'李四'
+}
+Object.defineProperty(person,'firstName',{
+    get(){
+        return this._firstName
+    },
+    set(value){
+        this._firstName = value
+        console.log('设置 firstName 为 ' + value)
+    }
+    configurable:true
+})
+// 修改属性"firstNmae"会触发监听
+person.firstName = '王五'
+// 输出：设置 firstName 为 王五
+```
+* **Proxy**
+```js
+var obj = {
+    name:'张三',
+    age:18
+}
+const handler = {
+    get(target,prop){
+        console.log('获取属性' + prop)
+        return target[prop]
+    },
+    set(target,prop,value){
+        console.log('设置属性' + prop + '为' + value)
+        target[prop] = value
+        return true
+    }
+}
+const proxy = new Proxy(obj,handler)
+console.log(proxy.name)  // 输出：获取属性name,然后输出：张三
+// 修改属性"name"会触发监听
+proxy.name = '李四'
+// 输出：设置属性name为李四
+```
+
+
 ## 55. 问题：prototype和__proto__的区别与关系
-## 56. 问题：原型链的实践
+* **`prototype`**
+    * 函数对象（构造函数）特有属性，每个函数对象都有一个`prototype`属性，它是一个对象。
+    * 通常用于定义共享的属性和方法，可以被构造函数创建的示例对象所继承。可以在构造函数的`prototype`上定义方法，以便多个实例对象共享这些方法，从而节省内存
+    * 主要用于原型继承，它是构造函数和实例对象之间的链接，用于共享方法和属性。
+* **`__proto__`**
+    * 每个对象（包括函数对象和普通对象）都具有的属性，它指向对象的原型，也就是它的父对象
+    * 用于实现原型链，当你访问一个对象的属性时，如果对象本身没有这个属性，javascript引擎会沿着原型链（通过`__proto__`属性）向上查找，直到找到属性或到达原型链的顶部（通常是`Object.prototype`）
+    * 主要用于对象之间的继承，它建立了对象之间的原型关系。
+* **总结**：`prototype`和`__proto__`是不同的，但它们在javascript中一起用于实现原型继承。构造函数的`prototype`对象会被赋予给实例对象的`__proto__`属性，从而建立了原型链。
+```js
+// 创建一个构造函数
+function Person(name){
+    this.name = name
+}
+
+// 在构造函数的prototype上定义一个方法
+Person.prototype.sayName = function(){
+    console.log('我的名字是' + this.name)
+}
+
+// 创建一个实例对象
+const person1 = new Person('张三')
+// 调用实例对象的方法
+console.log(person1.name) // 输出：张三
+person1.sayName()// 输出：我的名字是张三
+
+// 查看实例对象的__proto__属性 它指向构造函数的prototype对象
+console.log(person1.__proto__ === Person.prototype) // 输出：true
+
+```
+
+
+## 56. 问题：原型链的实践-一下代码输出2的原因
+```js
+const Foo = function(){
+    this.a = function(){
+        console.log('2')
+    }
+}
+
+Foo.prototype.a = function(){
+    console.log('3')
+}
+
+Foo.a = function(){
+    console.log('4')
+}
+
+let obj = new Foo()
+obj.a() // 输出：2
+// 调用实例对象的方法a时，先检查实例对象本身是否有a方法，发现有，就调用实例对象的a方法，输出2
+// 如果实例对象本身没有a方法，就会沿着原型链查找，发现Foo.prototype有a方法，就调用Foo.prototype的a方法，输出3
+// 如果Foo.prototype也没有a方法，就会继续沿着原型链查找，发现Object.prototype有a方法，就调用Object.prototype的a方法，输出4
+// 如果Object.prototype也没有a方法，就会输出undefined
+```
+输出结果为2，当js尝试访问一个方法的属性时，首先会在实例本身去寻找，找不到就会往`prototype`上找，在该案例中，foo实例本身就拥有a方法，所以直接执行输出2.
+
+所以，当foo中没有a方法时，就会寻找prototype上的a方法，输出3。而Foo.a则是Foo的静态方法，通过`Foo.a()`直接执行
+
+
 ## 57. 问题：如何理解箭头函数没有this
+所谓的没有`this`，不是箭头函数中没有`this`这个变量，而是箭头函数不绑定自己的`this`,它会捕获其所在上下文的`this`值，作为自己的`this`值。这对于回调函数特别有用，可以避免传统函数中常见的 `this` 指向问题。例如，在对象方法中使用箭头函数可以确保`this`保持一致
+
+
 ## 58. 问题：上下文与this的指向
-## 59. 问题：
-## 60. 问题：
-## 61. 问题：
-## 62. 问题：
+```js
+globalThis.a = 100
+function fn(){
+    return {
+        a:200,
+        m:function(){
+            console.log(this.a);
+        },
+        n:()=>{
+            console.log(this.a);
+        },
+        k:function(){
+            return function(){
+                console.log(this.a);
+            }
+        }
+    }
+}
+
+const fn0 = fn()
+fn0.m() // 输出：200  this指向{a,m,n,k}
+fn0.n() // 输出：100  this指向全局对象globalThis
+fn0.k()() // 输出：100  this指向全局对象globalThis
+
+const context = {a:300}
+const fn1 = fn.call(context) // 改变箭头函数this的指向
+fn1.m() // 输出：200  this指向{a,m,n,k}
+fn1.n() // 输出：300  this指向context
+fn1.k().call(context) // 输出：300  this指向context
+```
+
+```js
+var name = 'window'
+const person1 = {
+    name:'person1',
+    foo1:function(){
+        console.log(this.name)
+    },
+    foo2:()=>{
+        console.log(this.name)
+    },
+    foo3:function(){
+        return ()=>{
+            console.log(this.name)
+        }
+    }
+}
+const person2 = {name:'person2'}
+person1.foo1() // 输出：person1  this指向person1
+person1.foo1.call(person2) // 输出：person2  this指向person2
+// 解释：foo1.call(person2)改变了foo1的this指向person2，所以输出person2
+
+person1.foo2() // 输出：window  
+person1.foo2.call(person2) // 输出：window  
+// 解释：foo2.call(person2)改变了foo2的this指向person2，但是箭头函数不绑定this，所以箭头函数的this指向全局对象name
+
+person1.foo3()() // 输出：person1  this指向person1
+// 解释：foo3返回一个箭头函数，箭头函数的this指向其所在上下文的this，即foo3的this，而foo3的this指向person1，所以箭头函数的this也指向person1
+person1.foo3.call(person2)() // 输出：person2  this指向person2
+// 解释：foo3.call(person2)改变了foo3的this指向person2，而箭头函数的this指向其所在上下文的this，即foo3的this，所以箭头函数的this也指向person2
+```
+
+```js
+let length = 10;
+
+function fn(){
+    return this.length +1 
+}
+const obj = {
+    length : 5,
+    test1: function(){
+        return fn()
+    }
+}
+obj.test2 = fn;
+console.log(obj.test1()) // 输出：6  this指向obj
+console.log(fn() === obj.test2) // 输出：false
+console.log(obj.test2()) // 输出：6
+```
+
+
+## 59. 问题：去除字符串首尾空格
+```js
+const originalString = " 张三李四  "
+const newString = originalString.trim()
+console.log(newString) // 输出："张三李四"
+```
+
+
+## 60. 问题：Symbol特性与作用
+1. **唯一性**：每个`Symbol`值都是唯一的，即使它们具有相同的描述字符串，它们也不相等。
+2. **不可枚举**：`Symbol`属性不会出现在`for...in`循环中，也不会被`Object.keys()`、`Object.getOwnPropertyNames()`、`JSON.stringify()`等方法返回。
+3. **用作属性名**：主要用途是作为对象属性的键，以确保属性的唯一性。
+```js
+const sym1 = Symbol('sym1')
+const sym2 = Symbol('sym2')
+console.log(sym1 === sym2) // 输出：false
+
+const obj = {
+    [sym1]: 'value1',
+    [sym2]: 'value2'
+}
+console.log(obj[sym1]) // 输出："value1"
+console.log(obj[sym2]) // 输出："value2"
+```
+4. **Symbol常量**：在代码中，可以使用`symbol`来定义常量，以避免意外的值的修改
+```js
+const COLOR_RED = Symbol("red")
+const COLOR_GREEN = Symbol("green")
+```
+
+## 61. 问题：String的startsWith和indexOf两种方法的区别
+* **startsWith**
+ * 字符串对象的方法，用于检查字符串是否以指定的子字符串开始
+ * 返回一个布尔值，如果字符串以指定的子字符串开头，则返回`true`,否则返回`false`
+ * 可以接受两个参数，第一个参数是要查找的子字符串，第二个参数是可选的，指定从字符串的哪个索引开始查找
+ ```js
+const str = "Hello, world!"
+console.log(str.startsWith("Hello")) // 输出：true
+console.log(str.startsWith("world")) // 输出：false
+console.log(str.startsWith("world", 7)) // 输出：true
+ ```
+ * **indexOf**
+ * 字符串对象的方法，用于查找指定子字符串在字符串中的第一个匹配项的索引
+ * 返回一个整数，如果找到匹配项，则返回匹配项的索引，否则返回-1
+ * 可以接受两个参数，第一个参数是要查找的子字符串，第二个参数是可选的，指定从字符串的哪个索引开始查找
+ ```js
+const str = "Hello, world!"
+console.log(str.indexOf("Hello")) // 输出：0
+console.log(str.indexOf("world")) // 输出：7
+console.log(str.indexOf("world", 7)) // 输出：7
+console.log(str.indexOf("world", 8)) // 输出：-1
+ ```
+
+
+## 62. 问题：字符串转数字的方法
+```js
+const str = "123"
+const num = parseInt(str)   // 123
+
+const str2 = "3.14"
+const num2 = parseFloat(str2) // 3.14
+
+const str3 = "42"
+const num3 = Number(str3) // 42
+```
+
+
+## 63. 问题：promise和await/async的关系
+* Promise: 是一种用于处理异步操作的对象，它代表了一个异步操作的最终完成或失败，并允许在异步操作完成后执行相关的代码。`Promise`提供了一种更灵活的方式来管理异步代码，尤其是在处理多个异步操作的情况下
+* await/async: 是一种用于处理异步操作的语法糖，它可以使异步代码看起来像同步代码一样。旨在简化异步代码的编写和理解。async函数返回一个`promise`，允许在函数使用`await`关键字等待异步操作完成
+
+关系
+* async函数返回一个`Promise`对象，这意味着你可以在`asuync`函数内使用`await`来等待一个`promise`对象的解决。await暂停async函数的执行，直到promise状态变为resolved(成功)或rejected(失败)
+* async/await是一种更直观的方式来处理`promise`，可以避免嵌套的回调函数（回调地狱）
+
+
+## 64. 问题：JS装箱机制（auto boxing）
+为什么一下代码第二行输出`true`，第三行输出`false`？
+```js
+const a = 1;
+console.log(a.__proto__ === Number.prototype) // 输出：true
+console.log(a instanceof Number) // 输出：false
+```
+首先，基础类型是没有__proto__的，第二行之所以输出true，是因为触发了js的autoboxing机制，也叫装箱机制，当一个基础类型尝试访问__proto__时，js会把基础类型临时装箱，理解为`const a = new Number(1)`,所以第二行会输出`true`，而第三行没有触发装箱机制，因此输出false
+
+
+## 65. 问题：不同类型宏任务的优先级
+刷新页面后，点击test按钮，5S后页面会输出什么？
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <button id="testBtn">test</button>
+
+    <script type="text/javascript">
+        function wait(time){
+            const start = Date.now()
+            while(Date.now() - start < time){
+                // 空循环等待
+            }
+        }
+        document.getElementById("testBtn").addEventListener("click", () => {
+            console.log('click')
+        })
+
+        setTimeout(() => {
+            console.log('setTimeout')
+        }, 0)
+
+        wait(5000) // 阻塞5S
+    </script>
+</body>
+</html>
+```
+当页面初始化时，生成了一个延时类型宏任务，并且页面会被阻塞5秒，而在这5秒内，点击test按钮，新创建了交互类型的宏任务，而交互类型的宏任务优先级要高于延时类型，因此最终页面会输出`click `在输出`setTimeout`
+
+
+## 66. 问题：console.log被重写，重新获取的方法
+```js
+const iframe = document.createElement("iframe")
+iframe.style.display = 'none'
+document.body.appendChild(iframe)
+console.log = iframe.contentWindow.console.log
+```
