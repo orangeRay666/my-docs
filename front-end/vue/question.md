@@ -87,7 +87,6 @@ this.list = [...this.list.slice(0, 0), 'x', ...this.list.slice(1)]
     - Vue2 打包体积相对较大，尤其是在包含了全框架的所有特性时
     - Vue3 进行了大量的打包体积优化。他采用了更有效的树摇（Tree-shaking）机制，允许去除未使用的代码部分。这意味着如果你只使用 vue 的一部分功能，最终打包出来的文件会更小
 
-
 ## 3. 问题：vue 的通讯方式
 
 通讯用于组件间数据传递与共享
@@ -359,8 +358,8 @@ console.log(state.count) // 0
 
 Vue3 在处理基础数据类型时选择使用 ref 和 getter/setter 是基于对效率、简洁性、API 设计和开发者体验的综合考虑。这种方法为不同类型的数据提供了适当的响应式解决方案，同时保持了框架的整体一致性和易用性。
 
+## 14. 问题：Vue 响应式 Observer、Dep、Watcher
 
-## 14. 问题：Vue响应式Observer、Dep、Watcher
 vue 响应式系统由 Observer、Dep、Watcher 三部分组成。
 
 - Observer：负责将数据转换为响应式对象，当数据发生变化时，会通知 `Dep` 进行更新。
@@ -369,5 +368,125 @@ vue 响应式系统由 Observer、Dep、Watcher 三部分组成。
 
 在数据被读的时候，触发`get`方法，执行`Dep`来收集依赖，也就是收集`Watcher`
 在数据被改的时候，触发`set`方法，通过对应的所有依赖`watcher`去执行更新
+
+## 15. 问题：vue3 为什么要用 proxy 替换 Object.defineProperty?
+
+Vue3 在设计上选择使用 proxy 替代 Object.defineProperty 主要为了提供更好的响应和性能。
+Object.defineProperty 是在 ES5 中引入的属性定义方法，用于对对象的属性进行劫持和拦截。Vue2.x 使用 Object.defineProperty 来实现对数据的劫持，从而实现响应式数据的更新和依赖追踪。
+
+- Object.defineProperty 只能对已经存在的属性进行劫持，无法拦截新增的属性和删除的属性。这意味着在 Vue2.x 中，当你添加或删除属性时，需要使用特定的方法（如`Vue.set`或`Vue.delete`）来触发响应式更新。这种限制增加了开发的复杂性。
+- Object.defineProperty 的劫持是基于属性描述符的，每个属性都有自己的描述符对象。当你使用 Object.defineProperty 来定义属性时，需要为每个属性指定描述符对象，包括`get`和`set`方法。这使得 Object.defineProperty 在处理新增属性和删除属性时比较复杂，需要额外的逻辑来处理。对于处理大规模的对象或数组来说，性能会下降，每个属性都需要劫持逻辑会增加内存消耗和初始化时间。
+- 相比之下，proxy 是 ES6 中引入的元编程特性，可以对整个对象进行拦截和代理。proxy 提供了更强大和灵活的拦截能力，可以拦截对象的读取、赋值、删除等操作。vue3.x 利用 proxy 的特性，可以更方便地实现响应式系统
+- 使用 proxy 可以解决 Object.defineProperty 地限制问题。他可以直接拦截对象地读取和赋值操作，无需在每个属性上进行劫持，这样就消除了属性级别地劫持开销，提高了初始化性能。另外 proxy 还可以拦截新增属性和删除属性操作，使得响应式系统更加完备和自动化。
+
+## 16. 问题：什么是虚拟 DOM
+
+一种在前端开发中用于提高性能地概念，他最初由 react 引入，后来被其他一些前端框架采用，虚拟 DOM 的主要目标是减少 DOM 操作的次数，从而提高页面渲染的效率。
+
+**基本工作原理**
+
+1. **虚拟 DOM 树** 当应用的状态发生变化时，框架会创建一个虚拟 DOM 树，一个轻量级的内存中的树形结构，与实际的 DOM 结构相对应。
+2. **对比差异** 框架会对比虚拟 DOM 树和实际 DOM 树之间的差异，确定需要进行的最小化操作。
+3. **批量更新** 框架会将所有需要进行的 DOM 操作（如添加、删除、修改节点）收集起来，批量执行，而不是每次都直接操作实际 DOM。
+4. **渲染到实际 DOM** 最后，框架会将对比差异后的结果渲染到实际的 DOM 上，更新页面展示。
+
+**优点**
+
+- **性能优化** 虚拟 DOM 可以减少直接操作实际 DOM 的次数，从而提高渲染性能。
+- **跨平台支持** 虚拟 DOM 可以在不同的平台上运行，如浏览器、移动应用等，因为它是一个跨平台的抽象层。
+- **简化开发** 虚拟 DOM 使得开发人员可以更方便地操作和管理 DOM，因为他们可以使用类似于操作普通 JavaScript 对象的方式来操作虚拟 DOM 树。这简化了开发流程，减少了出错的可能性。
+
+## 17. 问题：vue2 的生命周期
+
+1. **创建阶段（Creation）**:
+
+- `beforeCreate`：实例初始化后，数据观测和事件配置之前调用。此时实例尚未初始化完成，数据和时间等都未准备好。
+- `created`：实例创建完成后调用，数据观测和事件配置完成。此时实例已经初始化完成，数据和事件都已准备好，但 DOM 元素尚未挂载，适合进行数据初始化和异步操作。
+
+2. **挂载阶段（Mounting）**：
+
+- `beforeMount`：实例挂载到 DOM 之前调用，此时模板已编译完成，但 DOM 元素尚未挂载。
+- `mounted`：实例挂载到 DOM 后调用，此时模板已编译完成，DOM 元素已挂载，适合进行 DOM 操作和初始化。
+
+3. **更新阶段（Updating）**
+
+- `beforeUpdate`：数据更新时调用，此时虚拟 DOM 已更新，但 DOM 元素尚未更新。
+- `updated`：数据更新后调用，此时虚拟 DOM 已更新，DOM 元素也已更新，适合进行 DOM 操作和初始化。
+
+4. **销毁阶段（Destroying）**
+
+- `beforeDestroy`：实例销毁前调用，此时实例仍然完全可用。可用于清理定时器，取消订阅，解绑事件等清理操作。
+- `destroyed`：实例销毁后调用，此时实例已被销毁，所有事件监听器和子实例也已被移除。
+
+<div style="display:flex;align-items:center;justify-content:space-around;">
+<img src="./img/vue2-smzq.png" width="300" alt="vue2 生命周期图" title="vue2 生命周期图" />
+
+<img src="./img/vue3-smzq.png" width="400" alt="vue3 生命周期图" title="vue3 生命周期图" />
+</div>
+
+## 18. 问题：vue3 的生命周期
+
+1. **创建阶段（Creation）**:
+
+- `beforeCreate`：实例初始化后，数据观测和事件配置之前调用。此时实例尚未初始化完成，setup函数中的响应式数据和计算属性尚未准备好。
+- `created`：实例创建完成后调用，数据观测和事件配置完成。此时实例已经初始化完成，setup函数中的响应式数据和事件都已准备好，但 DOM 元素尚未挂载，适合进行数据初始化和异步操作。
+
+2. **设置阶段（Setup）**
+- setup: 在vue3中，setup函数是组件的入口函数，在组件实例创建完成后立即调用。在setup函数中，我们可以定义响应式数据、计算属性、方法等。setup函数的返回值会被合并到组件实例中，成为组件的响应式数据和方法。
+
+3. **挂载阶段（Mounting）**：
+
+- `beforeMount`：在挂载开始之前被调用，跟Vue2中的beroreMount类似
+- `onBeforeMount`: Vue3中的新增生命周期钩子，也是在挂载前被调用。
+- `mounted`：实例挂载到 DOM 后调用，此时模板已编译完成，DOM 元素已挂载，适合进行 DOM 操作和初始化。
+- `onMounted`: Vue3中的新增生命周期钩子，也是在挂载后被调用。
+
+4. **更新阶段（Updating）**
+
+- `beforeUpdate`：数据更新时调用，此时虚拟 DOM 已更新，但 DOM 元素尚未更新。
+- `onBeforeUpdate`: Vue3中的新增生命周期钩子，也是在更新前被调用。
+- `updated`：数据更新后调用，此时虚拟 DOM 已更新，DOM 元素也已更新，适合进行 DOM 操作和初始化。
+- `onUpdated`: Vue3中的新增生命周期钩子，也是在更新后被调用。
+
+5. **销毁阶段（Unmounting）**
+
+- `beforeUnmount`：实例销毁前调用，此时实例仍然完全可用。可用于清理定时器，取消订阅，解绑事件等清理操作。
+- `onBeforeUnmount`: Vue3中的新增生命周期钩子，也是在销毁前被调用。
+- `unmounted`：实例销毁后调用，此时实例已被销毁，所有事件监听器和子实例也已被移除。
+- `onUnmounted`: Vue3中的新增生命周期钩子，也是在销毁后被调用。
+
+
+## 19. 问题：watch怎么深度监听对象变化
+设置`deep: true`即可深度监听对象变化。
+```js
+watch:{
+  myObect:{
+    handler(newVal,oldVal){
+      console.log('myObect 变化了', newVal, oldVal)
+    },
+    deep: true
+  }
+}
+```
+
+## 20. 问题：vue2删除数组用delete和Vue.delete有什么区别？
+
+`delete`:
+- `delete`是JavaScript的原生操作符，用于删除对象的属性。当你使用`delete`删除数组的元素时，元素确实会被删除，但数组的长度不会变化，被删除的元素将变成undefined.
+- `delete`操作不会触发Vue的响应系统，因此不会引起视图的更新
+```js
+const arr = [1,2,3]
+delete arr[1] //删除元素2
+// arr变成[1,empty,3]
+```
+
+`Vue.delete`:
+- 'Vue.delete'是vue2提供的用于再响应式数组中删除元素的方法。他会将数组的长度缩短，并触发Vue的响应系统，确保视图与数据同步
+- 使用`Vue.delete`来删除数组元素，Vue会正确追踪更改，并在视图中删除相应的元素。
+```js
+const arr = [1,2,3]
+Vue.delete(arr,1) //删除元素2
+// arr变成[1,3]
+```
 
 
