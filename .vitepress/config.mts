@@ -56,6 +56,7 @@ export default defineConfig({
           { text: '代码编程 题目', link: '/front-end/code/question' },
           { text: '计算机网络 题目', link: '/front-end/http/question' },
           { text: 'vue 题目', link: '/front-end/vue/question' },
+          { text: '前端构建&工程化题目', link: '/front-end/project/question' },
         ]
       },
       {
